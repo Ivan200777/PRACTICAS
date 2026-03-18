@@ -4,13 +4,13 @@ import Footer from './components/Footer.vue'
 </script>
 
 <template>
-  <Header />>
+  <Header/>>
 
   <main>
     <router-view/>
   </main>
 
-  <Footer />
+  <Footer/>
 
 </template>
 

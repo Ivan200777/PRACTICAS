@@ -3,8 +3,8 @@
   <div class="pagina-banquillo">
     <h2 style="color: #d4af37;">ZONA DE SUPLENTES</h2>
     <div class="zona-reservas">
-      <p>Aquí descansan los jugadores de refresco.</p>
-      <p style="font-size: 24px;">| | |
+      <p style="color:aliceblue">Aquí descansan los jugadores suplentes.</p>
+      <p style="font-size: 24px; color:aliceblue">| | |
          </p>
     </div>
   </div>
