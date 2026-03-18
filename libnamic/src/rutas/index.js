@@ -21,9 +21,16 @@ const misRutas= [
 },
 
 {
+    path: '/jugador/:id',
+    name: 'ficha-tecnica',
+    component: () => import('../views/FichaTecnicaView.vue'),
+    props: true
+},
+{
     path: '/banquillo',
     name: 'banquillo',
-    component: () => import('../views/BanquilloView.vue')
+    component: () => import('../views/BanquilloView.vue'),
+    props: true //código más limpio y fácil gracias a props
 
 }
 

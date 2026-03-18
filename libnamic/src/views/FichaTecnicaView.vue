@@ -1,29 +1,8 @@
 
-<template>
-  <div class="pagina-banquillo">
-    <h2 style="color: #d4af37;">ZONA DE SUPLENTES</h2>
-    
-    <div class="zona-reservas">
-      <p v-if="jugadores.filter(j => !j.titular).length === 0" style="color:aliceblue">
-        No hay suplentes en este momento.
-      </p>
-
-      <ul style="list-style: none; padding: 0; color:aliceblue">
-        <li v-for="jugador in jugadores.filter(j => !j.titular)" :key="jugador.id" style="margin-bottom: 20px;">
-          <strong>{{ jugador.nombre }}</strong> <br>
-          <small>{{ jugador.posicion }}</small>
-          <br>
-          <router-link :to="{ name: 'ficha-tecnica', params: { id: jugador.id } }" style="color: #d4af37; font-size: 0.8em;">
-            Ver ficha
-          </router-link>
-        </li>
-      </ul>
-    </div>
-  </div>
-</template>
-
 <script setup>
-const jugadores = [
+  import{ computed } from 'vue'
+  const props = defineProps(['id'])
+  const jugadores = [
   { id: 1, nombre: 'Courtois', posicion: 'Portero', titular: true },
   { id: 5, nombre: 'Nuno Mendes', posicion: 'Defensa', titular: true },
   { id: 2, nombre: 'William Saliba', posicion: 'Defensa', titular: true },
@@ -39,17 +18,19 @@ const jugadores = [
   { id: 13, nombre: 'Gabriel Magalhaes', posicion: 'Defensa', titular: false },
   { id: 14, nombre: 'Dani Guiza', posicion: 'Delantero', titular: false }
 ]
+
+//Ahora lo que busco es un jugador que coincida con el id
+const jugadorEncontrado = computed(()=> {
+    return jugadores.find(j=>j.id === parseInt(props.id))
+})
 </script>
 
-<style scoped>
-.pagina-banquillo {
-  text-align: center;
-  padding: 50px;
-}
-.zona-reservas {
-  width: 400px;
-  border: 2px dashed #666;
-  margin: 20px auto;
-  padding: 30px;
-}
-</style>
+<template>
+  <div v-if="jugadorEncontrado" style=" text-align: center; color: white;">
+    <h1>{{jugadorEncontrado.nombre}}</h1>
+    <p>Posición: {{ jugadorEncontrado.posicion }}</p>
+    <p>Estado: {{ jugadorEncontrado.titular ? 'Titular' : 'Suplente' }}</p>
+    <p>Dorsal: {{ jugadorEncontrado.id }}</p>
+    <router-link :to="{ name: 'jugadores' }">Volver a la lista</router-link>
+  </div>
+</template>
