@@ -1,45 +1,43 @@
+<script setup>
+import TarjetaDeJugador from '../components/TarjetaDeJugador.vue'
+import { listaCompartida as jugadores } from '@/DatosDeLosJugadores.js'
+
+const cambiarEstado = (id) => {
+  // Buscamos al jugador por su ID en la lista compartida
+  const j = jugadores.value.find(jug => jug.id === id)
+  if (j) {
+    // Si es titular pasa a ser falso, y viceversa
+    j.titular = !j.titular
+  }
+}
+</script>
 
 <template>
   <div class="pagina-banquillo">
     <h2 style="color: #d4af37;">ZONA DE SUPLENTES</h2>
-    
     <div class="zona-reservas">
-      <p v-if="jugadores.filter(j => !j.titular).length === 0" style="color:aliceblue">
-        No hay suplentes en este momento.
+      <p v-if="jugadores.filter(j => !j.titular).length === 0" style="color: aliceblue;">
+        No hay suplentes por ahora
       </p>
 
-      <ul style="list-style: none; padding: 0; color:aliceblue">
-        <li v-for="jugador in jugadores.filter(j => !j.titular)" :key="jugador.id" style="margin-bottom: 20px;">
-          <strong>{{ jugador.nombre }}</strong> <br>
-          <small>{{ jugador.posicion }}</small>
-          <br>
-          <router-link :to="{ name: 'ficha-tecnica', params: { id: jugador.id } }" style="color: #d4af37; font-size: 0.8em;">
-            Ver ficha
-          </router-link>
+      <ul style="list-style: none; padding: 0;">
+        <li v-for="jugador in jugadores.filter(j => !j.titular)" :key="jugador.id" style="margin-bottom: 30px;">
+          
+          <tarjeta-de-jugador :jugador="jugador" />
+
+          <button 
+            @click="cambiarEstado(jugador.id)" 
+            style="display: block; width: 100%; margin-top: 10px; padding: 8px; background: #d4af37; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"
+          >
+            ⬆️ Subir a Titular
+          </button>
+          
         </li>
       </ul>
     </div>
   </div>
 </template>
 
-<script setup>
-const jugadores = [
-  { id: 1, nombre: 'Courtois', posicion: 'Portero', titular: true },
-  { id: 5, nombre: 'Nuno Mendes', posicion: 'Defensa', titular: true },
-  { id: 2, nombre: 'William Saliba', posicion: 'Defensa', titular: true },
-  { id: 3, nombre: 'Eric García', posicion: 'Defensa', titular: true },
-  { id: 4, nombre: 'Achraf Hakimi', posicion: 'Defensa', titular: true },
-  { id: 8, nombre: 'Pedri', posicion: 'Centrocampista', titular: true },
-  { id: 7, nombre: 'Fermín López', posicion: 'Centrocampista', titular: true },
-  { id: 6, nombre: 'Vitinha', posicion: 'Centrocampista', titular: true },
-  { id: 11, nombre: 'Mbappe', posicion: 'Delantero', titular: true },
-  { id: 9, nombre: 'Harry Kane', posicion: 'Delantero', titular: true },
-  { id: 10, nombre: 'Lamine Yamal', posicion: 'Delantero', titular: true },
-  { id: 12, nombre: 'De Jong', posicion: 'Centrocampista', titular: false },
-  { id: 13, nombre: 'Gabriel Magalhaes', posicion: 'Defensa', titular: false },
-  { id: 14, nombre: 'Dani Guiza', posicion: 'Delantero', titular: false }
-]
-</script>
 
 <style scoped>
 .pagina-banquillo {
