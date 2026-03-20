@@ -1,11 +1,14 @@
 <script setup>
 import TarjetaDeJugador from '@/components/TarjetaDeJugador.vue';
-import {ref} from 'vue' //ref sirve para actualizar la pantalla con nuevos datos
+import {ref, computed} from 'vue' //ref sirve para actualizar la pantalla con nuevos datos
 import { listaCompartida as jugadores } from '@/DatosDeLosJugadores.js'
+
+
+
 const nuevoNombre = ref('')
 const nuevaPosicion = ref('Portero')
 const nuevoId = ref()
-
+const busqueda = ref('')
   //Esto será para que el botón de fichar funcione
   const añadirFichaje=() => {
     if (nuevoNombre.value.trim() === '') return //El trim es para eliminar los espacios feos de un nombre
@@ -31,6 +34,18 @@ const cambiarEstado = (id) => {
     jugador.titular = !jugador.titular
   }
 }
+
+const borrarJugador = (id) => {
+  if (confirm('¿Estás seguro de que quieres despedir a este jugador?')){
+    jugadores.value= jugadores.value.filter(j => j.id !==id)
+  }
+}
+
+const titularesFiltrados = computed(()=> {
+  return jugadores.value
+  .filter(j => j.titular)//solo los que están en el campo
+  .filter(j => j.nombre.toLowerCase().includes(busqueda.value.toLowerCase())) //Filtramos por nombre
+})
 
 </script>
 
@@ -69,11 +84,22 @@ FICHAR
 </p>
 </div>
 
+<div style="margin-bottom: 20px;">
+  <input 
+  v-model="busqueda"
+  type="text"
+  placeholder="🔎Buscar jugador titular..."
+  style="padding: 10px; width: 300px; border-radius: 20px; border: 1px solid #d4af37; background: #1a1a1a; color: white; text-align: center;"
+>
+</div>
 <h2 style="color: #d4af37;">MIS 11 TITULARES</h2>
 <ul style="list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center;">
   
-  <li v-for="j in jugadores.filter(jug => jug.titular)" :key="j.id" style="margin: 15px;">
-    
+<li v-for="j in titularesFiltrados" :key="j.id" style="margin: 15px; position: relative; display: inline-block;">
+    <button
+    @click="borrarJugador(j.id)" class="Despedir"  >
+    x
+</button>
     <tarjeta-de-jugador :jugador="j" />
     
     <button 
@@ -102,5 +128,29 @@ FICHAR
 .tarjetaDeJugador:hover {
   transform: scale(1.05);
   box-shadow: 0 0 15px #d4af37;
+}
+
+.Despedir{
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.8);
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+}
+
+.Despedir:hover{
+  background: #d4af37;
+  color: black;
+  transform: scale(1.1);
 }
 </style>

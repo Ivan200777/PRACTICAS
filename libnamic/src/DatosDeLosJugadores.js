@@ -1,7 +1,10 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue' //El watch para que si vue encuentra un dato nuevo que no esté guardado, lo use
 
+const datosGuardados = localStorage.getItem('misJugadores')
+export const listaCompartida = ref(
+  
+  datosGuardados ? JSON.parse(datosGuardados) : [
 
-export const listaCompartida = ref([
   //Portero
   {
     id: 1, nombre: 'Courtois', posicion: 'Portero', titular: true
@@ -45,3 +48,12 @@ export const listaCompartida = ref([
     id:14, nombre: 'Dani Guiza', posicion: 'Delantero', titular: false
   },
   ])
+//Cada vez que la lista cambie guardamos la versión actualizada automáticamente
+  watch(
+    listaCompartida, (nuevaLista) => {
+      localStorage.setItem('misJugadores', JSON.stringify(nuevaLista))
+
+    },
+    {deep: true} //deep sirve para detectar cambios dentro de los objetos
+  )
+  
