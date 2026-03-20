@@ -9,6 +9,12 @@ const nuevoNombre = ref('')
 const nuevaPosicion = ref('Portero')
 const nuevoId = ref()
 const busqueda = ref('')
+const nuevosGoles = ref(0)
+const nuevasAsistencias = ref(0)
+const nuevasAmarillas = ref (0)
+const nuevasRojas = ref (0)
+const nuevosTitulos = ref(0)
+
   //Esto será para que el botón de fichar funcione
   const añadirFichaje=() => {
     if (nuevoNombre.value.trim() === '') return //El trim es para eliminar los espacios feos de un nombre
@@ -17,13 +23,23 @@ const busqueda = ref('')
       id: nuevoId.value || Date.now(), 
       nombre: nuevoNombre.value,
       posicion: nuevaPosicion.value,
-      titular: false
+      titular: false,
+      goles: nuevosGoles.value,
+      asistencias: nuevasAsistencias.value,
+      amarillas: nuevasAmarillas.value,
+      rojas: nuevasRojas.value,
+      titulos: nuevosTitulos.value
     }
     jugadores.value.push(nuevo)
 
     nuevoNombre.value = ''
     nuevoId.value = null //Esto es para limpiar inputs
-   nuevaPosicion.value = 'Portero';
+    nuevosGoles.value = 0
+    nuevasAsistencias.value = 0
+    nuevasAmarillas.value = 0
+    nuevasRojas.value = 0
+    nuevosTitulos.value = 0
+    nuevaPosicion.value = 'Portero';
 }
 
   //Como solo son 11, no podemos añadir jugadores sin quitar otros, por eso, vamos a poner una opción para mandar al banquillo y otra para mandar al 11 titular
@@ -70,12 +86,20 @@ style="padding: 10px; border-radius: 5px; margin-right: 10px;">
 </select>
 
 <input
-v-model="nuevoId"
+v-model.number="nuevoId"
 type="number"
 placeholder="Nº"
 style="padding: 10px; width:50px;border-radius: 5px; margin-right: 10px;">
+
+<div style="margin-top: 15px; color: white; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+  <label>⚽ <input v-model.number="nuevosGoles" type="number" style="width: 40px;"></label>
+  <label>👟 <input v-model.number="nuevasAsistencias" type="number" style="width: 40px;"></label>
+  <label>🏆 <input v-model.number="nuevosTitulos" type="number" style="width: 40px;"></label>
+  <label>🟨 <input v-model.number="nuevasAmarillas" type="number" style="width: 40px;"></label>
+  <label>🟥 <input v-model.number="nuevasRojas" type="number" style="width: 40px;"></label>
+</div>
   
-<button @click="añadirFichaje" style="margin-left: 10px; padding: 10px 20px; background: #d4af37;font-weight: bold; cursor: pointer; ">
+<button @click="añadirFichaje" style="margin-top: 15px; margin-left: 10px; padding: 10px 20px; background: #d4af37;font-weight: bold; cursor: pointer; border: none; border-radius: 5px;">
 FICHAR
 </button>
 
