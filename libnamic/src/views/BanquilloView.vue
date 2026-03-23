@@ -42,6 +42,13 @@ const borrarJugador = (id) => {
         <button @click="borrarJugador(jugador.id)" class="Despedir">
             x
           </button>
+          
+            <div class="contenedor-foto">
+        <img v-if="jugador.foto" :src="jugador.foto" class="foto-real">
+        <div v-else class="circulo-vacio">
+          {{ jugador.nombre.charAt(0) }}
+        </div>
+     </div>
 
           <tarjeta-de-jugador :jugador="jugador"/>
 
@@ -138,5 +145,34 @@ const borrarJugador = (id) => {
   background: #d4af37;
   color: black;
   transform: scale(1.1);
+}
+.contenedor-foto {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.foto-real, .circulo-vacio {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.foto-real {
+  object-fit: cover;
+}
+
+.circulo-vacio {
+  background-color: #333;
+  color: #d4af37;      
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2);
 }
 </style>

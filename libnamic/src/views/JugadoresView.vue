@@ -14,6 +14,7 @@ const nuevasAsistencias = ref(0)
 const nuevasAmarillas = ref (0)
 const nuevasRojas = ref (0)
 const nuevosTitulos = ref(0)
+const nuevaFoto = ref('')
 
   //Esto será para que el botón de fichar funcione
   const añadirFichaje=() => {
@@ -24,6 +25,8 @@ const nuevosTitulos = ref(0)
       nombre: nuevoNombre.value,
       posicion: nuevaPosicion.value,
       titular: false,
+      //Añado la foto, en caso de que haya texto en el input, lo guardamos y si no guarda un null
+      foto:nuevaFoto.value.trim() !== '' ? nuevaFoto.value:null,
       goles: nuevosGoles.value,
       asistencias: nuevasAsistencias.value,
       amarillas: nuevasAmarillas.value,
@@ -39,7 +42,8 @@ const nuevosTitulos = ref(0)
     nuevasAmarillas.value = 0
     nuevasRojas.value = 0
     nuevosTitulos.value = 0
-    nuevaPosicion.value = 'Portero';
+    nuevaPosicion.value = 'Portero'
+    nuevaFoto.value = '';
 }
 
   //Como solo son 11, no podemos añadir jugadores sin quitar otros, por eso, vamos a poner una opción para mandar al banquillo y otra para mandar al 11 titular
@@ -68,6 +72,7 @@ const titularesFiltrados = computed(()=> {
 
 <template>
   <div class="contenedor-principal">
+    
     <div class="caja-fichaje">
       <h3 class="titulo-dorado">NUEVO FICHAJE</h3>
 
@@ -82,33 +87,34 @@ const titularesFiltrados = computed(()=> {
         </select>
 
         <input v-model.number="nuevoId" type="number" placeholder="Nº" class="input-dorsal">
-      </div>
-
-      <div class="inputs-estadisticas">
-        <label>⚽ <input v-model.number="nuevosGoles" type="number"></label>
-        <label>👟 <input v-model.number="nuevasAsistencias" type="number"></label>
-        <label>🏆 <input v-model.number="nuevosTitulos" type="number"></label>
-        <label>🟨 <input v-model.number="nuevasAmarillas" type="number"></label>
-        <label>🟥 <input v-model.number="nuevasRojas" type="number"></label>
+        
+        <input v-model="nuevaFoto" type="text" placeholder="URL de la foto (opcional)" class="input-base">
       </div>
 
       <button @click="añadirFichaje" class="boton-fichar">FICHAR</button>
       
       <p class="preview-fichaje">
-        Vas a fichar a: <strong>{{ nuevoNombre }}</strong> como {{ nuevaPosicion }} con el dorsal {{ nuevoId }}
+        Vas a fichar a: <strong>{{ nuevoNombre }}</strong>
       </p>
     </div>
-
     <div class="contenedor-buscador">
-      <input v-model="busqueda" type="text" placeholder="🔎 Buscar jugador titular..." class="input-buscar">
+     <input v-model="busqueda" type="text" placeholder="🔎 Buscar por nombre..." class="input-buscar">
     </div>
-
     <h2 class="titulo-dorado">MIS 11 TITULARES</h2>
 
     <ul class="lista-titulares">
       <li v-for="j in titularesFiltrados" :key="j.id" class="item-jugador">
         <button @click="borrarJugador(j.id)" class="Despedir">x</button>
+        
+        <div class="contenedor-foto">
+          <img v-if="j.foto" :src="j.foto" class="foto-real">
+          <div v-else class="circulo-vacio">
+            {{ j.nombre.charAt(0) }}
+          </div>
+        </div>
+
         <tarjeta-de-jugador :jugador="j"/>
+        
         <button @click="cambiarEstado(j.id)" class="boton-banquillo">
           ⬇️ Mandar al Banquillo 
         </button>
@@ -273,5 +279,37 @@ const titularesFiltrados = computed(()=> {
   background: #d4af37;
   color: black;
   transform: scale(1.1);
+}
+
+.foto-real, .circulo-vacio {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+
+.foto-real {
+  object-fit: cover; /* Para que la cara no se vea estirada */
+}
+
+.circulo-vacio {
+  background-color: #333;
+  color: #d4af37;      
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.circulo-vacio {
+  background-color: #333;
+  color: #d4af37;      
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2); /* Brillo sutil */
 }
 </style>
