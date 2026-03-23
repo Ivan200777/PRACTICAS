@@ -67,79 +67,176 @@ const titularesFiltrados = computed(()=> {
 
 
 <template>
-<div style="text-align: center; padding: 20px;" >
-<div style="margin-bottom: 30px; background-color: black; padding: 20px; border-radius: 10px;
-border: 1px solid #d4af37;">
-<h3 style="color:#d4af37"> NUEVO FICHAJE</h3>
+  <div class="contenedor-principal">
+    <div class="caja-fichaje">
+      <h3 class="titulo-dorado">NUEVO FICHAJE</h3>
 
-<input 
-v-model="nuevoNombre"
-type="text"
-placeholder="Nombre del jugador"
-style="padding: 10px; border-radius: 5px; margin-right: 10px;">
+      <div class="grupo-inputs-principales"> 
+        <input v-model="nuevoNombre" type="text" placeholder="Nombre del jugador" class="input-base">
 
-<select v-model="nuevaPosicion" style="padding: 10px; border-radius: 5px;">
-<option>Portero</option>
-<option>Defensa</option>
-<option>Centrocampista</option>
-<option>Delantero</option>
-</select>
+        <select v-model="nuevaPosicion" class="select-base">
+          <option>Portero</option>
+          <option>Defensa</option>
+          <option>Centrocampista</option>
+          <option>Delantero</option>
+        </select>
 
-<input
-v-model.number="nuevoId"
-type="number"
-placeholder="Nº"
-style="padding: 10px; width:50px;border-radius: 5px; margin-right: 10px;">
+        <input v-model.number="nuevoId" type="number" placeholder="Nº" class="input-dorsal">
+      </div>
 
-<div style="margin-top: 15px; color: white; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-  <label>⚽ <input v-model.number="nuevosGoles" type="number" style="width: 40px;"></label>
-  <label>👟 <input v-model.number="nuevasAsistencias" type="number" style="width: 40px;"></label>
-  <label>🏆 <input v-model.number="nuevosTitulos" type="number" style="width: 40px;"></label>
-  <label>🟨 <input v-model.number="nuevasAmarillas" type="number" style="width: 40px;"></label>
-  <label>🟥 <input v-model.number="nuevasRojas" type="number" style="width: 40px;"></label>
-</div>
-  
-<button @click="añadirFichaje" style="margin-top: 15px; margin-left: 10px; padding: 10px 20px; background: #d4af37;font-weight: bold; cursor: pointer; border: none; border-radius: 5px;">
-FICHAR
-</button>
+      <div class="inputs-estadisticas">
+        <label>⚽ <input v-model.number="nuevosGoles" type="number"></label>
+        <label>👟 <input v-model.number="nuevasAsistencias" type="number"></label>
+        <label>🏆 <input v-model.number="nuevosTitulos" type="number"></label>
+        <label>🟨 <input v-model.number="nuevasAmarillas" type="number"></label>
+        <label>🟥 <input v-model.number="nuevasRojas" type="number"></label>
+      </div>
 
-<p style="color: aliceblue; margin-top: 10px;">
-  Vas a fichar a: <strong>{{ nuevoNombre }}</strong> como {{ nuevaPosicion }} con el dorsal {{ nuevoId }}
-</p>
-</div>
+      <button @click="añadirFichaje" class="boton-fichar">FICHAR</button>
+      
+      <p class="preview-fichaje">
+        Vas a fichar a: <strong>{{ nuevoNombre }}</strong> como {{ nuevaPosicion }} con el dorsal {{ nuevoId }}
+      </p>
+    </div>
 
-<div style="margin-bottom: 20px;">
-  <input 
-  v-model="busqueda"
-  type="text"
-  placeholder="🔎Buscar jugador titular..."
-  style="padding: 10px; width: 300px; border-radius: 20px; border: 1px solid #d4af37; background: #1a1a1a; color: white; text-align: center;"
->
-</div>
-<h2 style="color: #d4af37;">MIS 11 TITULARES</h2>
-<ul style="list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center;">
-  
-<li v-for="j in titularesFiltrados" :key="j.id" style="margin: 15px; position: relative; display: inline-block;">
-    <button
-    @click="borrarJugador(j.id)" class="Despedir"  >
-    x
-</button>
-    <tarjeta-de-jugador :jugador="j" />
-    
-    <button 
-      @click="cambiarEstado(j.id)" 
-      style="display: block; width: 100%; margin-top: 10px; padding: 8px; background: #444; color: #d4af37; border: 1px solid #d4af37; border-radius: 5px; cursor: pointer; font-weight: bold;"
-    >
-      ⬇️ Mandar al Banquillo
-    </button>
+    <div class="contenedor-buscador">
+      <input v-model="busqueda" type="text" placeholder="🔎 Buscar jugador titular..." class="input-buscar">
+    </div>
 
-  </li>
-</ul>
-</div>
+    <h2 class="titulo-dorado">MIS 11 TITULARES</h2>
 
+    <ul class="lista-titulares">
+      <li v-for="j in titularesFiltrados" :key="j.id" class="item-jugador">
+        <button @click="borrarJugador(j.id)" class="Despedir">x</button>
+        <tarjeta-de-jugador :jugador="j"/>
+        <button @click="cambiarEstado(j.id)" class="boton-banquillo">
+          ⬇️ Mandar al Banquillo 
+        </button>
+      </li>
+    </ul>
+  </div>
 </template>
 
+
+ 
+
 <style scoped>
+.contenedor-principal {
+  text-align: center;
+  padding: 20px;
+}
+
+.caja-fichaje {
+  margin-bottom: 30px;
+  background-color: black;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #d4af37;
+}
+
+.titulo-dorado {
+  color: #d4af37;
+  text-transform: uppercase;
+}
+
+/* Estilos de Formulario */
+.grupo-inputs-principales {
+  margin-bottom: 15px;
+}
+
+.input-base, .select-base, .input-dorsal, .input-buscar {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.input-base { margin-right: 10px; }
+.input-dorsal { width: 60px; margin-right: 10px; }
+
+.inputs-estadisticas {
+  margin-top: 15px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.inputs-estadisticas input {
+  width: 45px;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+/* Botones */
+.boton-fichar {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #d4af37;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+
+.boton-fichar:hover {
+  background: #f1c40f;
+  transform: scale(1.05);
+}
+
+.boton-banquillo {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  background: #444;
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.boton-banquillo:hover {
+  background: #d4af37;
+  color: black;
+}
+
+/* Listas y Tarjetas */
+.lista-titulares {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.item-jugador {
+  margin: 15px;
+  position: relative;
+  display: inline-block;
+}
+
+.preview-fichaje {
+  color: aliceblue;
+  margin-top: 10px;
+}
+
+.contenedor-buscador {
+  margin-bottom: 20px;
+}
+
+.input-buscar {
+  width: 300px;
+  border-radius: 20px;
+  border: 1px solid #d4af37;
+  background: #1a1a1a;
+  color: white;
+  text-align: center;
+}
 .tarjetaDeJugador{
   background: linear-gradient(45deg, #1a1a1a, #333);
   border: 2px solid #d4af37;

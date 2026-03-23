@@ -1,11 +1,11 @@
 <script setup>
-  import { computed } from 'vue'
-  import { listaCompartida as jugadores } from '@/DatosDeLosJugadores.js'
-  const props = defineProps(['id'])
+import { computed } from 'vue'
+import { listaCompartida as jugadores } from '@/DatosDeLosJugadores.js'
+const props = defineProps(['id'])
 
 
 //Ahora lo que busco es un jugador que coincida con el id
-const jugadorEncontrado = computed(()=> {
+const miJugador = computed(()=> {
   if (!jugadores.value) return null;
 
   return jugadores.value.find(j=>String(j.id) === String(props.id))
@@ -13,55 +13,57 @@ const jugadorEncontrado = computed(()=> {
 </script>
 
 <template>
-  <div v-if="jugadorEncontrado" class="ficha-avanzada">
-    <div style="text-align: left; margin-bottom: 20px;">
-      <router-link :to="{ name: 'jugadores' }" class="btn-volver">← Volver a la lista</router-link>
+  <div v-if="miJugador" class="tarjeta-detallada">
+    <div class="bloque-superior">
+      <router-link :to="{ name: 'jugadores' }" class="boton-volver">← Volver a la lista</router-link>
     </div>
 
-    <h1 style="color: #d4af37; margin-bottom: 0;">{{jugadorEncontrado.nombre}}</h1>
-    <p style="color: #aaa; margin-top: 5px;">
-      {{ jugadorEncontrado.posicion }} | Dorsal #{{ jugadorEncontrado.id }}
+    <h1 class="nombre-jugador">{{miJugador.nombre}}</h1>
+    
+    <p class="datos-secundarios">
+      {{ miJugador.posicion }} | Dorsal #{{ miJugador.id }}
     </p>
-    <p style="font-weight: bold; color: #d4af37; letter-spacing: 1px;">
-      ESTADO: {{ jugadorEncontrado.titular ? 'TITULAR' : 'SUPLENTE' }}
+    
+    <p class="texto-titularidad">
+      ESTADO: {{ miJugador.titular ? 'TITULAR' : 'SUPLENTE' }}
     </p>
 
-    <div class="stats-grid">
+    <div class="rejilla-numeros">
       
-      <div class="stat-card">
-        <span class="icon">⚽</span>
-        <span class="label">Goles</span>
-        <span class="value">{{ jugadorEncontrado.goles || 0 }}</span>
+      <div class="cuadro-dato">
+        <span class="icono">⚽</span>
+        <span class="etiqueta">Goles</span>
+        <span class="cifra">{{ miJugador.goles || 0 }}</span>
       </div>
       
-      <div class="stat-card">
-        <span class="icon">👟</span>
-        <span class="label">Asistencias</span>
-        <span class="value">{{ jugadorEncontrado.asistencias || 0 }}</span>
+      <div class="cuadro-dato">
+        <span class="icono">👟</span>
+        <span class="etiqueta">Asistencias</span>
+        <span class="cifra">{{ miJugador.asistencias || 0 }}</span>
       </div>
 
-      <div class="stat-card">
-        <span class="icon">🏆</span>
-        <span class="label">Títulos</span>
-        <span class="value" style="color: #d4af37;">{{ jugadorEncontrado.titulos || 0 }}</span>
+      <div class="cuadro-dato">
+        <span class="icono">🏆</span>
+        <span class="etiqueta">Títulos</span>
+        <span class="cifra brillo-oro">{{ miJugador.titulos || 0 }}</span>
       </div>
 
-      <div class="stat-card cards">
-        <div class="card-box">🟨 {{ jugadorEncontrado.amarillas || 0 }}</div>
-        <div class="card-box">🟥 {{ jugadorEncontrado.rojas || 0 }}</div>
+      <div class="cuadro-dato fila-completa">
+        <div class="marca-tarjeta">🟨 {{ miJugador.amarillas || 0 }}</div>
+        <div class="marca-tarjeta">🟥 {{ miJugador.rojas || 0 }}</div>
       </div>
 
     </div>
   </div>
 
-  <div v-else style="text-align: center; color: white; margin-top: 50px;">
+  <div v-else class="aviso-error">
     <h2>Cargando o jugador no encontrado...</h2>
-    <router-link :to="{ name: 'jugadores' }" style="color: #d4af37;">Volver</router-link>
+    <router-link :to="{ name: 'jugadores' }" class="link-retorno">Volver</router-link>
   </div>
 </template>
 
 <style scoped>
-.ficha-avanzada {
+.tarjeta-detallada {
   background: #1a1a1a;
   border: 2px solid #d4af37;
   border-radius: 20px;
@@ -74,14 +76,37 @@ const jugadorEncontrado = computed(()=> {
   color: white;
 }
 
-.stats-grid {
+.bloque-superior {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.nombre-jugador {
+  color: #d4af37;
+  margin-bottom: 0;
+  text-transform: uppercase;
+}
+
+.datos-secundarios {
+  color: #aaa;
+  margin-top: 5px;
+}
+
+.texto-titularidad {
+  font-weight: bold;
+  color: #d4af37;
+  letter-spacing: 1px;
+  margin-top: 15px;
+}
+
+.rejilla-numeros {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
   margin-top: 25px;
 }
 
-.stat-card {
+.cuadro-dato {
   background: rgba(255, 255, 255, 0.05);
   padding: 15px;
   border-radius: 12px;
@@ -91,25 +116,29 @@ const jugadorEncontrado = computed(()=> {
   border: 1px solid #333;
 }
 
-.stat-card .value {
+.cifra {
   font-size: 1.8rem;
   font-weight: bold;
   margin-top: 5px;
 }
 
-.stat-card .label {
+.brillo-oro {
+  color: #d4af37;
+}
+
+.etiqueta {
   font-size: 0.7rem;
   text-transform: uppercase;
   color: #888;
 }
 
-.cards {
+.fila-completa {
   grid-column: span 2;
   flex-direction: row;
   justify-content: space-around;
 }
 
-.btn-volver {
+.boton-volver {
   text-decoration: none;
   color: #d4af37;
   border: 1px solid #d4af37;
@@ -119,12 +148,24 @@ const jugadorEncontrado = computed(()=> {
   transition: 0.3s;
 }
 
-.btn-volver:hover {
+.boton-volver:hover {
   background: #d4af37;
   color: black;
 }
 
-.card-box {
+.aviso-error {
+  text-align: center;
+  color: white;
+  margin-top: 50px;
+}
+
+.link-retorno {
+  color: #d4af37;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.marca-tarjeta {
   font-weight: bold;
 }
 </style>

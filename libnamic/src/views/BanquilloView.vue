@@ -31,49 +31,91 @@ const borrarJugador = (id) => {
 
 <template>
   <div class="pagina-banquillo">
-    <h2 style="color: #d4af37;">ZONA DE SUPLENTES</h2>
+    <h2 class="titulo-dorado">ZONA DE SUPLENTES</h2>
     <div class="zona-reservas">
-      <p v-if="jugadores.filter(j => !j.titular).length === 0" style="color: aliceblue;">
+      <p v-if="jugadores.filter(j => !j.titular).length === 0" class="mensaje-vacio">
         No hay suplentes por ahora
       </p>
 
-      <ul style="list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center;">
-        <li v-for="jugador in jugadores.filter(j => !j.titular)" :key="jugador.id" style="margin: 15px; position: relative; display: inline-block;">
-          
-          <button @click="borrarJugador(jugador.id)" class="Despedir">
+  <ul class="lista-suplentes">        
+    <li v-for="jugador in jugadores.filter(j => !j.titular)" :key="jugador.id" class="suplente">
+        <button @click="borrarJugador(jugador.id)" class="Despedir">
             x
           </button>
 
-          <tarjeta-de-jugador :jugador="jugador" />
+          <tarjeta-de-jugador :jugador="jugador"/>
 
-          <button 
-            @click="cambiarEstado(jugador.id)" 
-            style="display: block; width: 100%; margin-top: 10px; padding: 8px; background: #d4af37; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"
-          >
+          <button @click="cambiarEstado(jugador.id)" class="boton-subir">
             ⬆️ Subir a Titular
           </button>
-          
-        </li>
-      </ul>
-    </div>
+     </li>
+    </ul>
   </div>
-</template>
-
-
-<style scoped>
+</div>
+</template> 
+          
+  <style scoped>
 .pagina-banquillo {
   text-align: center;
   padding: 50px;
 }
+
+.titulo-dorado {
+  color: #d4af37;
+  text-transform: uppercase;
+}
+
 .zona-reservas {
   width: 100%;
-  max-width: 800px;
+  max-width: 900px; /* Un poco más ancho para que quepan mejor las tarjetas */
   border: 2px dashed #666;
   margin: 20px auto;
   padding: 30px;
+  border-radius: 15px;
 }
 
-/* Estilo para el botón de borrar */
+.mensaje-vacio {
+  color: aliceblue;
+  font-style: italic;
+}
+
+/* Estilos de la Lista */
+.lista-suplentes {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px; /* Espaciado moderno entre tarjetas */
+}
+
+.suplente {
+  position: relative;
+  display: inline-block;
+}
+
+/* Botones */
+.boton-subir {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #d4af37;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.boton-subir:hover {
+  background: #f1c40f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Estilo para el botón de borrar (X) */
 .Despedir {
   position: absolute;
   top: 5px;
