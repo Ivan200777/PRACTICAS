@@ -67,6 +67,22 @@ const titularesFiltrados = computed(()=> {
   .filter(j => j.nombre.toLowerCase().includes(busqueda.value.toLowerCase())) //Filtramos por nombre
 })
 
+const elegirCapitan = (id) => {
+  const jugador = jugadores.value.find(j => j.id === id)
+  if (jugador) {
+    if (!jugador.capitan) {
+      // Limpiamos a todos los demás para que solo haya uno
+      jugadores.value.forEach(j => {
+        j.capitan = false
+      })
+      jugador.capitan = true
+    } else {
+      // Si ya era capitán, se lo quitamos
+      jugador.capitan = false
+    }
+  }
+}
+
 </script>
 
 
@@ -103,30 +119,40 @@ const titularesFiltrados = computed(()=> {
     <h2 class="titulo-dorado">MIS 11 TITULARES</h2>
 
     <ul class="lista-titulares">
-      <li v-for="j in titularesFiltrados" :key="j.id" class="item-jugador">
-        <button @click="borrarJugador(j.id)" class="Despedir">x</button>
-        
-        <div class="contenedor-foto">
-          <img v-if="j.foto" :src="j.foto" class="foto-real">
-          <div v-else class="circulo-vacio">
-            {{ j.nombre.charAt(0) }}
-          </div>
-        </div>
+      <li v-for="j in titularesFiltrados" 
+    :key="j.id" 
+    class="item-jugador" 
+    :class="{ 'es-capitan': j.capitan }">
+  
+    <div v-if="j.capitan" class="brazalete-capitan">C</div>
 
-        <tarjeta-de-jugador :jugador="j"/>
-        
-        <button @click="cambiarEstado(j.id)" class="boton-banquillo">
-          ⬇️ Mandar al Banquillo 
-        </button>
+    <button @click="borrarJugador(j.id)" class="Despedir">x</button>
+  
+    <button @click="elegirCapitan(j.id)" class="boton-capitan">
+    {{ j.capitan ? '⭐ Capitán' : 'Nombrar Capitán' }}
+    </button>
+
+   <div class="contenedor-foto">
+    <img v-if="j.foto" :src="j.foto" class="foto-real">
+    <div v-else class="circulo-vacio">
+      {{ j.nombre.charAt(0) }}
+    </div>
+  </div>
+
+  <tarjeta-de-jugador :jugador="j"/>
+  
+  <button @click="cambiarEstado(j.id)" class="boton-banquillo">
+    ⬇️ Mandar al Banquillo 
+  </button>
+
       </li>
     </ul>
   </div>
 </template>
 
-
- 
-
 <style scoped>
+
+
 .contenedor-principal {
   text-align: center;
   padding: 20px;
@@ -311,5 +337,44 @@ const titularesFiltrados = computed(()=> {
   font-weight: bold;
   text-transform: uppercase;
   box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2); /* Brillo sutil */
+}
+.es-capitan {
+  transform: scale(1.02);
+  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+}
+
+.es-capitan .foto-real, 
+.es-capitan .circulo-vacio {
+  border-color: #ffcc00; /* Un dorado más brillante */
+  box-shadow: 0 0 15px #ffcc00;
+}
+
+.brazalete-capitan {
+  position: absolute;
+  top: 10px;
+  left: -5px;
+  background: #d4af37;
+  color: black;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  z-index: 20;
+}
+
+.boton-capitan {
+  background: none;
+  border: 1px solid #d4af37;
+  color: #d4af37;
+  font-size: 11px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  transition: 0.3s;
+}
+
+.boton-capitan:hover {
+  background: #d4af37;
+  color: black;
 }
 </style>
