@@ -2,7 +2,12 @@
 import { ref, computed, watch } from 'vue'
 import { listaCompartida as jugadores } from '@/DatosDeLosJugadores.js'
 
+
 const nombreEquipo = ref(localStorage.getItem('nombreMiEquipo') || 'MI 11 IDEAL')
+const suplentes = computed(() => {
+  return jugadores.value.filter(j => !j.titular)
+})
+
 
 watch(nombreEquipo, (nuevoNombre) => {
   localStorage.setItem('nombreMiEquipo', nuevoNombre)
@@ -44,6 +49,19 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
       </div>
     </div>
 
+    <div class="zona-banquillo-campo">
+      <h3 class="titulo-banquillo">BANQUILLO</h3>
+      <div class="contenedor-suplentes">
+        <div v-for="j in suplentes" :key="j.id" class="mini-tarjeta-suplente">
+          <div class="foto-suplente">
+            <img v-if="j.foto" :src="j.foto">
+            <span v-else>{{ j.nombre.charAt(0) }}</span>
+          </div>
+          <p class="nombre-suplente">{{ j.nombre }}</p>
+          <small class="pos-suplente">{{ j.posicion }}</small>
+        </div>
+      </div>
+    </div>
     <div class="marcador-info" :class="{ 'error': titulares.length !== 11 }">
       Titulares: {{ titulares.length }} / 11
       <p v-if="titulares.length !== 11" class="aviso">Debes elegir exactamente 11 titulares</p>
@@ -119,7 +137,7 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
 .portero { bottom: 5%; left: 50%; }
 
 .defensa { bottom: 22%; }
-.defensa:nth-of-type(4n+1) { left: 20%; }
+.defensa:nth-of-type(4n+1) { left: 20%; } /*el número que acompaña a la n es la cantidad de ese tipo y el otro número nos marca cuál es */
 .defensa:nth-of-type(4n+2) { left: 40%; }
 .defensa:nth-of-type(4n+3) { left: 60%; }
 .defensa:nth-of-type(4n+4) { left: 80%; }
@@ -227,6 +245,72 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
   text-align: center;
 }
 
-.marcador-info.error { color: #ff4444; }
-.aviso { font-size: 12px; margin-top: 5px; }
+.marcador-info.error { 
+  color: #ff4444; 
+}
+.aviso { 
+  font-size: 12px; margin-top: 5px; 
+}
+
+.zona-banquillo-campo {
+  margin-top: 30px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #d4af37;
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.titulo-banquillo {
+  color: #d4af37;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  text-align: left;
+  border-bottom: 1px solid #d4af37;
+}
+
+.contenedor-suplentes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+
+.mini-tarjeta-suplente {
+  width: 80px;
+  text-align: center;
+}
+
+.foto-suplente {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid #d4af37;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d4af37;
+}
+
+.foto-suplente img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nombre-suplente {
+  color: white;
+  font-size: 0.8rem;
+  margin: 5px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pos-suplente {
+  color: #d4af37;
+  font-size: 0.6rem;
+}
 </style>

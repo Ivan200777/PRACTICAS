@@ -15,26 +15,42 @@ const nuevasAmarillas = ref (0)
 const nuevasRojas = ref (0)
 const nuevosTitulos = ref(0)
 const nuevaFoto = ref('')
+const editandoId = ref(null)
 
   //Esto será para que el botón de fichar funcione
   const añadirFichaje=() => {
     if (nuevoNombre.value.trim() === '') return //El trim es para eliminar los espacios feos de un nombre
 
-    const nuevo= {
-      id: nuevoId.value || Date.now(), 
-      nombre: nuevoNombre.value,
-      posicion: nuevaPosicion.value,
-      titular: false,
-      //Añado la foto, en caso de que haya texto en el input, lo guardamos y si no guarda un null
-      foto:nuevaFoto.value.trim() !== '' ? nuevaFoto.value:null,
-      goles: nuevosGoles.value,
-      asistencias: nuevasAsistencias.value,
-      amarillas: nuevasAmarillas.value,
-      rojas: nuevasRojas.value,
-      titulos: nuevosTitulos.value
+    if (editandoId.value) {
+      // Si estamos editando, buscamos al jugador por su ID y actualizamos sus datos
+      const index = jugadores.value.findIndex(j => j.id === editandoId.value)
+      if (index !== -1) {
+        jugadores.value[index].nombre = nuevoNombre.value
+        jugadores.value[index].posicion = nuevaPosicion.value
+        jugadores.value[index].foto = nuevaFoto.value.trim() !== '' ? nuevaFoto.value : null
+      }
+      editandoId.value = null // Resetear el estado de edición
+    } else {
+      // Creamos el nuevo objeto con todos los datos y el campo convocado para el examen
+      const nuevo= {
+        id: nuevoId.value || Date.now(), 
+        nombre: nuevoNombre.value,
+        posicion: nuevaPosicion.value,
+        titular: false,
+        convocado: false, 
+        capitan: false,
+        //Añado la foto, en caso de que haya texto en el input, lo guardamos y si no guarda un null
+        foto:nuevaFoto.value.trim() !== '' ? nuevaFoto.value:null,
+        goles: nuevosGoles.value,
+        asistencias: nuevasAsistencias.value,
+        amarillas: nuevasAmarillas.value,
+        rojas: nuevasRojas.value,
+        titulos: nuevosTitulos.value
+      }
+      jugadores.value.push(nuevo)
     }
-    jugadores.value.push(nuevo)
 
+    // Limpiar todos los inputs después de fichar o editar
     nuevoNombre.value = ''
     nuevoId.value = null //Esto es para limpiar inputs
     nuevosGoles.value = 0
@@ -45,6 +61,15 @@ const nuevaFoto = ref('')
     nuevaPosicion.value = 'Portero'
     nuevaFoto.value = '';
 }
+
+  // Función para cargar los datos del jugador en el formulario de arriba
+  const prepararEdicion = (j) => {
+    nuevoNombre.value = j.nombre
+    nuevaPosicion.value = j.posicion
+    nuevaFoto.value = j.foto || ''
+    editandoId.value = j.id
+    window.scrollTo(0,0) // Subir el scroll para ver el formulario
+  }
 
   //Como solo son 11, no podemos añadir jugadores sin quitar otros, por eso, vamos a poner una opción para mandar al banquillo y otra para mandar al 11 titular
 const cambiarEstado = (id) => {
@@ -63,7 +88,7 @@ const borrarJugador = (id) => {
 
 const titularesFiltrados = computed(()=> {
   return jugadores.value
-  .filter(j => j.titular)//solo los que están en el campo
+  .filter(j => j.titular)
   .filter(j => j.nombre.toLowerCase().includes(busqueda.value.toLowerCase())) //Filtramos por nombre
 })
 
@@ -90,7 +115,7 @@ const elegirCapitan = (id) => {
   <div class="contenedor-principal">
     
     <div class="caja-fichaje">
-      <h3 class="titulo-dorado">NUEVO FICHAJE</h3>
+      <h3 class="titulo-dorado">{{ editandoId ? 'EDITAR JUGADOR' : 'NUEVO FICHAJE' }}</h3>
 
       <div class="grupo-inputs-principales"> 
         <input v-model="nuevoNombre" type="text" placeholder="Nombre del jugador" class="input-base">
@@ -107,16 +132,18 @@ const elegirCapitan = (id) => {
         <input v-model="nuevaFoto" type="text" placeholder="URL de la foto (opcional)" class="input-base">
       </div>
 
-      <button @click="añadirFichaje" class="boton-fichar">FICHAR</button>
+      <button @click="añadirFichaje" class="boton-fichar">{{ editandoId ? 'GUARDAR CAMBIOS' : 'FICHAR' }}</button>
       
       <p class="preview-fichaje">
-        Vas a fichar a: <strong>{{ nuevoNombre }}</strong>
+        {{ editandoId ? 'Editando a: ' : 'Vas a fichar a: ' }} <strong>{{ nuevoNombre }}</strong>
       </p>
     </div>
+
     <div class="contenedor-buscador">
      <input v-model="busqueda" type="text" placeholder="🔎 Buscar por nombre..." class="input-buscar">
     </div>
-    <h2 class="titulo-dorado">MIS 11 TITULARES</h2>
+
+    <h2 class="titulo-dorado">PLANTILLA ACTUAL</h2>
 
     <ul class="lista-titulares">
       <li v-for="j in titularesFiltrados" 
@@ -127,6 +154,7 @@ const elegirCapitan = (id) => {
     <div v-if="j.capitan" class="brazalete-capitan">C</div>
 
     <button @click="borrarJugador(j.id)" class="Despedir">x</button>
+    <button @click="prepararEdicion(j)" class="boton-editar">✏️</button>
   
     <button @click="elegirCapitan(j.id)" class="boton-capitan">
     {{ j.capitan ? '⭐ Capitán' : 'Nombrar Capitán' }}
@@ -142,7 +170,7 @@ const elegirCapitan = (id) => {
   <tarjeta-de-jugador :jugador="j"/>
   
   <button @click="cambiarEstado(j.id)" class="boton-banquillo">
-    ⬇️ Mandar al Banquillo 
+    {{ j.titular ? '⬇️ Mandar al Banquillo' : '⬆️ Titular' }} 
   </button>
 
       </li>
@@ -184,21 +212,6 @@ const elegirCapitan = (id) => {
 
 .input-base { margin-right: 10px; }
 .input-dorsal { width: 60px; margin-right: 10px; }
-
-.inputs-estadisticas {
-  margin-top: 15px;
-  color: white;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.inputs-estadisticas input {
-  width: 45px;
-  padding: 5px;
-  border-radius: 4px;
-}
 
 /* Botones */
 .boton-fichar {
@@ -269,19 +282,6 @@ const elegirCapitan = (id) => {
   color: white;
   text-align: center;
 }
-.tarjetaDeJugador{
-  background: linear-gradient(45deg, #1a1a1a, #333);
-  border: 2px solid #d4af37;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 10px auto;
-  width: 250px;
-  transition: transform 0.3s;
-}
-.tarjetaDeJugador:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px #d4af37;
-}
 
 .Despedir{
   position: absolute;
@@ -298,13 +298,23 @@ const elegirCapitan = (id) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: 0.3s;
 }
 
-.Despedir:hover{
-  background: #d4af37;
-  color: black;
-  transform: scale(1.1);
+.boton-editar {
+  position: absolute;
+  top: 5px;
+  right: 35px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.8);
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .foto-real, .circulo-vacio {
@@ -319,7 +329,7 @@ const elegirCapitan = (id) => {
 }
 
 .foto-real {
-  object-fit: cover; /* Para que la cara no se vea estirada */
+  object-fit: cover;
 }
 
 .circulo-vacio {
@@ -328,24 +338,11 @@ const elegirCapitan = (id) => {
   font-size: 24px;
   font-weight: bold;
   text-transform: uppercase;
-}
-
-.circulo-vacio {
-  background-color: #333;
-  color: #d4af37;      
-  font-size: 24px;
-  font-weight: bold;
-  text-transform: uppercase;
-  box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2); /* Brillo sutil */
-}
-.es-capitan {
-  transform: scale(1.02);
-  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
 }
 
 .es-capitan .foto-real, 
 .es-capitan .circulo-vacio {
-  border-color: #ffcc00; /* Un dorado más brillante */
+  border-color: #ffcc00; 
   box-shadow: 0 0 15px #ffcc00;
 }
 
@@ -370,11 +367,5 @@ const elegirCapitan = (id) => {
   cursor: pointer;
   margin-bottom: 5px;
   border-radius: 4px;
-  transition: 0.3s;
-}
-
-.boton-capitan:hover {
-  background: #d4af37;
-  color: black;
 }
 </style>
