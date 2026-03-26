@@ -2,18 +2,61 @@
 import { ref, computed, watch } from 'vue'
 import { listaCompartida as jugadores } from '@/DatosDeLosJugadores.js'
 
+const jugadorArrastradoIndex = ref(null) 
+const esSuplenteArrastrado = ref(false) 
+
+const empiezaArrastre = (index) => {
+  jugadorArrastradoIndex.value = index
+  esSuplenteArrastrado.value = false
+}
+
+const empiezaArrastreSuplente = (index) => {
+  jugadorArrastradoIndex.value = index
+  esSuplenteArrastrado.value = true
+}
+
+const soltarJugador = (indexDestino) => {
+  const indexOrigen = jugadorArrastradoIndex.value
+  
+  if (indexOrigen !== null) {
+    if (esSuplenteArrastrado.value) {
+      // Cambio: Suplente por Titular
+      const jugadorEntra = suplentes.value[indexOrigen]
+      const jugadorSale = titulares.value[indexDestino]
+      
+      jugadorEntra.titular = true
+      jugadorSale.titular = false
+    } else if (indexOrigen !== indexDestino) {
+      // Cambio: Titular por Titular (Posiciones)
+      const idOrigen = titulares.value[indexOrigen].id
+      const idDestino = titulares.value[indexDestino].id
+
+      const realIndexOrigen = jugadores.value.findIndex(j => j.id === idOrigen)
+      const realIndexDestino = jugadores.value.findIndex(j => j.id === idDestino)
+
+      const itemTemp = jugadores.value[realIndexOrigen]
+      jugadores.value[realIndexOrigen] = jugadores.value[realIndexDestino]
+      jugadores.value[realIndexDestino] = itemTemp
+    }
+    
+    // Forzar actualización visual
+    jugadores.value = [...jugadores.value]
+  }
+  jugadorArrastradoIndex.value = null
+  esSuplenteArrastrado.value = false
+}
 
 const nombreEquipo = ref(localStorage.getItem('nombreMiEquipo') || 'MI 11 IDEAL')
+
 const suplentes = computed(() => {
   return jugadores.value.filter(j => !j.titular)
 })
 
+const titulares = computed(() => jugadores.value.filter(j => j.titular))
 
 watch(nombreEquipo, (nuevoNombre) => {
   localStorage.setItem('nombreMiEquipo', nuevoNombre)
 })
-
-const titulares = computed(() => jugadores.value.filter(j => j.titular))
 </script>
 
 <template>
@@ -33,9 +76,13 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
       <div class="area-grande"></div>
       <div class="area-pequeña"></div>
       
-      <div v-for="j in titulares" 
+      <div v-for="(j, index) in titulares" 
            :key="j.id" 
-           :class="['jugador-posicionado', j.posicion.toLowerCase()]">
+           :class="['jugador-posicionado', j.posicion.toLowerCase()]"
+           draggable="true"
+           @dragstart="empiezaArrastre(index)"
+           @dragover.prevent
+           @drop="soltarJugador(index)">
         
         <div class="ficha-campo" :class="{'es-capitan' : j.capitan}">
           <div class="contenedor-avatar">
@@ -43,7 +90,6 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
             <div v-else class="inicial-miniatura">{{ j.nombre.charAt(0) }}</div>
             <span v-if="j.capitan" class="brazalete-capitan">C</span>
           </div>
-        
           <span class="nombre-campo">{{ j.nombre }}</span>
         </div>
       </div>
@@ -52,7 +98,11 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
     <div class="zona-banquillo-campo">
       <h3 class="titulo-banquillo">BANQUILLO</h3>
       <div class="contenedor-suplentes">
-        <div v-for="j in suplentes" :key="j.id" class="mini-tarjeta-suplente">
+        <div v-for="(j, index) in suplentes" 
+             :key="j.id" 
+             class="mini-tarjeta-suplente"
+             draggable="true"
+             @dragstart="empiezaArrastreSuplente(index)">
           <div class="foto-suplente">
             <img v-if="j.foto" :src="j.foto">
             <span v-else>{{ j.nombre.charAt(0) }}</span>
@@ -62,6 +112,7 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
         </div>
       </div>
     </div>
+
     <div class="marcador-info" :class="{ 'error': titulares.length !== 11 }">
       Titulares: {{ titulares.length }} / 11
       <p v-if="titulares.length !== 11" class="aviso">Debes elegir exactamente 11 titulares</p>
@@ -132,12 +183,19 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
   transform: translateX(-50%);
   transition: all 0.5s ease;
   z-index: 10;
+  cursor: grab;
+  user-select: none;
 }
 
-.portero { bottom: 5%; left: 50%; }
+.jugador-posicionado:active {
+  cursor: grabbing;
+  opacity: 0.5;
+}
 
+/* Posiciones */
+.portero { bottom: 5%; left: 50%; }
 .defensa { bottom: 22%; }
-.defensa:nth-of-type(4n+1) { left: 20%; } /*el número que acompaña a la n es la cantidad de ese tipo y el otro número nos marca cuál es */
+.defensa:nth-of-type(4n+1) { left: 20%; }
 .defensa:nth-of-type(4n+2) { left: 40%; }
 .defensa:nth-of-type(4n+3) { left: 60%; }
 .defensa:nth-of-type(4n+4) { left: 80%; }
@@ -230,12 +288,6 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
   font-family: 'Arial Black', sans-serif;
   letter-spacing: 2px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  cursor: text;
-}
-
-.input-nombre-equipo:focus {
-  border-bottom: 2px solid #ffcc00;
-  background: rgba(0, 0, 0, 0.1);
 }
 
 .marcador-info {
@@ -245,19 +297,18 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
   text-align: center;
 }
 
-.marcador-info.error { 
-  color: #ff4444; 
-}
-.aviso { 
-  font-size: 12px; margin-top: 5px; 
-}
+.marcador-info.error { color: #ff4444; }
+.aviso { font-size: 12px; margin-top: 5px; }
 
+/* Estilos Banquillo */
 .zona-banquillo-campo {
   margin-top: 30px;
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid #d4af37;
   border-radius: 15px;
   padding: 15px;
+  width: 100%;
+  max-width: 500px;
 }
 
 .titulo-banquillo {
@@ -278,6 +329,7 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
 .mini-tarjeta-suplente {
   width: 80px;
   text-align: center;
+  cursor: grab;
 }
 
 .foto-suplente {
@@ -304,9 +356,6 @@ const titulares = computed(() => jugadores.value.filter(j => j.titular))
   color: white;
   font-size: 0.8rem;
   margin: 5px 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .pos-suplente {
