@@ -32,7 +32,13 @@ const misRutas= [
     component: () => import('../views/BanquilloView.vue'),
     props: true //código más limpio y fácil gracias a props
 
-}
+},
+  {
+    path: '/jugador/:id/edit',
+    name: 'editar-jugador',
+    component: () => import('../views/FichaTecnicaView.vue'), 
+    props: true
+  }
 
 ]
 
