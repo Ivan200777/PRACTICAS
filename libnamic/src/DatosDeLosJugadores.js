@@ -70,8 +70,24 @@ export const listaCompartida = ref(
     { 
       id: 14, nombre: 'Dani Güiza', posicion: 'Delantero', titular: false, convocado: false, foto:"Imagenes/guiza.jpg",
       goles: 215, asistencias: 40, amarillas: 55, rojas: 4, titulos: 4, capitan: false 
+    },
+    { 
+    id: 15, nombre: 'Olise', posicion: 'Delantero', titular: false, convocado: false, foto: "Imagenes/olise.jpg",
+    goles: 45, asistencias: 30, amarillas: 8, rojas: 0, titulos: 3, capitan: false 
+    },
+    { 
+    id: 16, nombre: 'Kanté', posicion: 'Centrocampista', titular: false, convocado: false, foto: "Imagenes/kante.jpg",
+    goles: 18, asistencias: 22, amarillas: 35, rojas: 1, titulos: 12, capitan: false 
+    },
+    { 
+    id: 17, nombre: 'Messi', posicion: 'Delantero', titular: false, convocado: false, foto: "Imagenes/messi.jpg",
+    goles: 850, asistencias: 380, amarillas: 62, rojas: 3, titulos: 44, capitan: false 
+    },
+    { 
+    id: 18, nombre: 'Militão', posicion: 'Defensa', titular: false, convocado: false, foto: "Imagenes/militao.jpg",
+    goles: 12, asistencias: 4, amarillas: 28, rojas: 2, titulos: 16, capitan: false 
     }
-  ]
+    ]
 )
 
 //Cada vez que la lista cambie guardamos la versión actualizada automáticamente

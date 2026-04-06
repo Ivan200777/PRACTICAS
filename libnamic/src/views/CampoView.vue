@@ -54,6 +54,111 @@ const suplentes = computed(() => {
 
 const titulares = computed(() => jugadores.value.filter(j => j.titular))
 
+const formacionActual = ref('4-4-2') 
+
+const FORMACIONES = {
+  '4-4-2': {
+    slots: [
+      { posicion: 'Portero',        left: 50, bottom: 5  },
+      { posicion: 'Defensa',        left: 15, bottom: 22 },
+      { posicion: 'Defensa',        left: 38, bottom: 22 },
+      { posicion: 'Defensa',        left: 62, bottom: 22 },
+      { posicion: 'Defensa',        left: 85, bottom: 22 },
+      { posicion: 'Centrocampista', left: 15, bottom: 48 },
+      { posicion: 'Centrocampista', left: 38, bottom: 48 },
+      { posicion: 'Centrocampista', left: 62, bottom: 48 },
+      { posicion: 'Centrocampista', left: 85, bottom: 48 },
+      { posicion: 'Delantero',      left: 33, bottom: 75 },
+      { posicion: 'Delantero',      left: 67, bottom: 75 },
+    ]
+  },
+  '4-3-3': {
+    slots: [
+      { posicion: 'Portero',        left: 50, bottom: 5  },
+      { posicion: 'Defensa',        left: 15, bottom: 22 },
+      { posicion: 'Defensa',        left: 38, bottom: 22 },
+      { posicion: 'Defensa',        left: 62, bottom: 22 },
+      { posicion: 'Defensa',        left: 85, bottom: 22 },
+      { posicion: 'Centrocampista', left: 22, bottom: 46 },
+      { posicion: 'Centrocampista', left: 50, bottom: 42 },
+      { posicion: 'Centrocampista', left: 78, bottom: 46 },
+      { posicion: 'Delantero',      left: 15, bottom: 75 },
+      { posicion: 'Delantero',      left: 50, bottom: 80 },
+      { posicion: 'Delantero',      left: 85, bottom: 75 },
+    ]
+  },
+  '3-5-2': {
+    slots: [
+      { posicion: 'Portero',        left: 50, bottom: 5  },
+      { posicion: 'Defensa',        left: 22, bottom: 20 },
+      { posicion: 'Defensa',        left: 50, bottom: 20 },
+      { posicion: 'Defensa',        left: 78, bottom: 20 },
+      { posicion: 'Centrocampista', left: 10, bottom: 48 },
+      { posicion: 'Centrocampista', left: 30, bottom: 48 },
+      { posicion: 'Centrocampista', left: 50, bottom: 48 },
+      { posicion: 'Centrocampista', left: 70, bottom: 48 },
+      { posicion: 'Centrocampista', left: 90, bottom: 48 },
+      { posicion: 'Delantero',      left: 33, bottom: 76 },
+      { posicion: 'Delantero',      left: 67, bottom: 76 },
+    ]
+  },
+}
+
+const cambiarFormacion = (nueva) => {
+  formacionActual.value = nueva
+  const slots = FORMACIONES[nueva].slots
+
+  // Contamos cuántos de cada posición necesita la formación
+  const necesarios = {}
+  slots.forEach(s => {
+    necesarios[s.posicion] = (necesarios[s.posicion] || 0) + 1
+  })
+
+  // Mandamos al banquillo a los titulares que sobran por posición
+  const contadores = {}
+  jugadores.value.forEach(j => {
+    if (!j.titular) return
+    contadores[j.posicion] = (contadores[j.posicion] || 0) + 1
+    if (contadores[j.posicion] > (necesarios[j.posicion] || 0)) {
+      j.titular = false
+    }
+  })
+
+  // Subimos suplentes de la posición que falte
+  const yaHay = {}
+  jugadores.value.filter(j => j.titular).forEach(j => {
+    yaHay[j.posicion] = (yaHay[j.posicion] || 0) + 1
+  })
+  jugadores.value.filter(j => !j.titular).forEach(j => {
+    const necesita = necesarios[j.posicion] || 0
+    const tiene    = yaHay[j.posicion]      || 0
+    if (tiene < necesita) {
+      j.titular = true
+      yaHay[j.posicion] = tiene + 1
+    }
+  })
+
+  jugadores.value = [...jugadores.value]
+}
+
+const titularesPorSlot = computed(() => {
+  const slots = FORMACIONES[formacionActual.value].slots
+  const contadores = {}
+  const porPosicion = {}
+
+  titulares.value.forEach(j => {
+    if (!porPosicion[j.posicion]) porPosicion[j.posicion] = []
+    porPosicion[j.posicion].push(j)
+  })
+
+  return slots.map(slot => {
+    if (!contadores[slot.posicion]) contadores[slot.posicion] = 0
+    const jugador = (porPosicion[slot.posicion] || [])[contadores[slot.posicion]]
+    contadores[slot.posicion]++
+    return jugador || null
+  })
+})
+
 watch(nombreEquipo, (nuevoNombre) => {
   localStorage.setItem('nombreMiEquipo', nuevoNombre)
 })
@@ -61,39 +166,48 @@ watch(nombreEquipo, (nuevoNombre) => {
 
 <template>
   <div class="escenario">
-    <div class="campo-futbol">
-      <div class="nombre-equipo-contenedor">
-        <input 
-          v-model="nombreEquipo" 
-          type="text" 
-          placeholder="NOMBRE DE TU EQUIPO" 
-          class="input-nombre-equipo"
-        >
-      </div>
+    <div class="selector-tactico">
+      <button @click="cambiarFormacion('4-4-2')" :class="{activo: formacionActual === '4-4-2'}">4-4-2</button>
+      <button @click="cambiarFormacion('4-3-3')" :class="{activo: formacionActual === '4-3-3'}">4-3-3</button>
+      <button @click="cambiarFormacion('3-5-2')" :class="{activo: formacionActual === '3-5-2'}">3-5-2</button>
+    </div>
 
+    <div :class="['campo-futbol', 'formacion-' + formacionActual]">
+      <input 
+        v-model="nombreEquipo" 
+        type="text" 
+        placeholder="NOMBRE DE TU EQUIPO" 
+        class="input-nombre-equipo"
+      >
       <div class="linea-medio"></div>
       <div class="circulo-central"></div>
       <div class="area-grande"></div>
       <div class="area-pequeña"></div>
       
-      <div v-for="(j, index) in titulares" 
-           :key="j.id" 
-           :class="['jugador-posicionado', j.posicion.toLowerCase()]"
-           draggable="true"
-           @dragstart="empiezaArrastre(index)"
-           @dragover.prevent
-           @drop="soltarJugador(index)">
-        
-        <div class="ficha-campo" :class="{'es-capitan' : j.capitan}">
-          <div class="contenedor-avatar">
-            <img v-if="j.foto" :src="j.foto" class="foto-miniatura">
-            <div v-else class="inicial-miniatura">{{ j.nombre.charAt(0) }}</div>
-            <span v-if="j.capitan" class="brazalete-capitan">C</span>
+      <div
+        v-for="(slot, index) in FORMACIONES[formacionActual].slots"
+        :key="index"
+        class="jugador-posicionado"
+        :style="{ left: slot.left + '%', bottom: slot.bottom + '%' }"
+        @dragover.prevent
+        @drop="soltarJugador(index)"
+      >
+        <template v-if="titularesPorSlot[index]">
+          <div class="ficha-campo" :class="{'es-capitan': titularesPorSlot[index].capitan}"
+               draggable="true"
+               @dragstart="empiezaArrastre(index)">
+            <div class="contenedor-avatar">
+              <img v-if="titularesPorSlot[index].foto" :src="titularesPorSlot[index].foto" class="foto-miniatura">
+              <div v-else class="inicial-miniatura">{{ titularesPorSlot[index].nombre.charAt(0) }}</div>
+              <span v-if="titularesPorSlot[index].capitan" class="brazalete-capitan">C</span>
+            </div>
+            <span class="nombre-campo">{{ titularesPorSlot[index].nombre }}</span>
           </div>
-          <span class="nombre-campo">{{ j.nombre }}</span>
-        </div>
+        </template>
       </div>
-    </div>
+
+    </div> <!-- cierre campo-futbol -->
+
 
     <div class="zona-banquillo-campo">
       <h3 class="titulo-banquillo">BANQUILLO</h3>
@@ -117,9 +231,9 @@ watch(nombreEquipo, (nuevoNombre) => {
       Titulares: {{ titulares.length }} / 11
       <p v-if="titulares.length !== 11" class="aviso">Debes elegir exactamente 11 titulares</p>
     </div>
+
   </div>
 </template>
-
 <style scoped>
 .escenario {
   display: flex;
@@ -361,5 +475,48 @@ watch(nombreEquipo, (nuevoNombre) => {
 .pos-suplente {
   color: #d4af37;
   font-size: 0.6rem;
+}
+
+/* Estilos de los botones */
+.selector-tactico {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.selector-tactico button {
+  padding: 8px 15px;
+  cursor: pointer;
+  background: #222;
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.selector-tactico button.activo {
+  background: #d4af37;
+  color: black;
+}
+
+/* --- MOVIMIENTOS SEGÚN LA FORMACIÓN --- */
+
+/* Si es 4-3-3, adelantamos un poco a los delanteros y centrocampistas */
+.formacion-4-3-3 .centrocampista { bottom: 48%; }
+.formacion-4-3-3 .delantero { bottom: 75%; }
+
+/* Si es 3-5-2, reubicamos defensas y centrocampistas */
+.formacion-3-5-2 .defensa { bottom: 18%; }
+/* Ajuste para que solo haya 3 defensas visualmente */
+.formacion-3-5-2 .defensa:nth-of-type(4) { display: none; } 
+
+.formacion-3-5-2 .centrocampista { bottom: 50%; }
+.formacion-3-5-2 .delantero { bottom: 78%; }
+
+/* Transición suave para que "vuelen" a su sitio */
+.jugador-posicionado {
+  transition: all 0.6s ease-in-out;
 }
 </style>
