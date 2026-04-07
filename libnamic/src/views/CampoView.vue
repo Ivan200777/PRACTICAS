@@ -19,29 +19,46 @@ const soltarJugador = (indexDestino) => {
   const indexOrigen = jugadorArrastradoIndex.value
   
   if (indexOrigen !== null) {
-    if (esSuplenteArrastrado.value) {
-      // Cambio: Suplente por Titular
-      const jugadorEntra = suplentes.value[indexOrigen]
-      const jugadorSale = titulares.value[indexDestino]
-      
-      jugadorEntra.titular = true
-      jugadorSale.titular = false
-    } else if (indexOrigen !== indexDestino) {
-      // Cambio: Titular por Titular (Posiciones)
-      const idOrigen = titulares.value[indexOrigen].id
-      const idDestino = titulares.value[indexDestino].id
+    // 1. Conseguimos el jugador que estamos arrastrando
+    const jugadorOrigen = esSuplenteArrastrado.value 
+      ? suplentes.value[indexOrigen] 
+      : titularesPorSlot.value[indexOrigen] 
 
-      const realIndexOrigen = jugadores.value.findIndex(j => j.id === idOrigen)
-      const realIndexDestino = jugadores.value.findIndex(j => j.id === idDestino)
+    // 2. Conseguimos el jugador que está en el hueco de destino
+    const jugadorDestino = titularesPorSlot.value[indexDestino]
 
-      const itemTemp = jugadores.value[realIndexOrigen]
-      jugadores.value[realIndexOrigen] = jugadores.value[realIndexDestino]
-      jugadores.value[realIndexDestino] = itemTemp
-    }
+    if (!jugadorOrigen) return // Seguridad
+
+    // 3. Buscamos sus posiciones reales en el array principal
+    const realIndexOrigen = jugadores.value.findIndex(j => j.id === jugadorOrigen.id)
     
-    // Forzar actualización visual
+    if (esSuplenteArrastrado.value) {
+      // CASO A: Traemos a alguien del banquillo al campo
+      if (jugadorDestino) {
+        // Intercambiamos estados: el que entra es titular, el que sale es suplente
+        const realIndexDestino = jugadores.value.findIndex(j => j.id === jugadorDestino.id)
+        jugadores.value[realIndexOrigen].titular = true
+        jugadores.value[realIndexDestino].titular = false
+      } else {
+        // Si el hueco estaba vacío 
+        jugadores.value[realIndexOrigen].titular = true
+      }
+    } else {
+      // CASO B: Intercambio entre dos jugadores que ya están en el campo
+      if (jugadorDestino && jugadorOrigen.id !== jugadorDestino.id) {
+        const realIndexDestino = jugadores.value.findIndex(j => j.id === jugadorDestino.id)
+        
+        // Intercambiamos sus posiciones en el array para que visualmente cambien
+        const temp = jugadores.value[realIndexOrigen]
+        jugadores.value[realIndexOrigen] = jugadores.value[realIndexDestino]
+        jugadores.value[realIndexDestino] = temp
+      }
+    }
+
     jugadores.value = [...jugadores.value]
   }
+  
+  // Limpiamos el estado del arrastre
   jugadorArrastradoIndex.value = null
   esSuplenteArrastrado.value = false
 }
@@ -54,52 +71,52 @@ const suplentes = computed(() => {
 
 const titulares = computed(() => jugadores.value.filter(j => j.titular))
 
-const formacionActual = ref('4-4-2') 
+const formacionActual = ref('4-3-3') 
 
 const FORMACIONES = {
   '4-4-2': {
     slots: [
-      { posicion: 'Portero',        left: 50, bottom: 5  },
-      { posicion: 'Defensa',        left: 15, bottom: 22 },
-      { posicion: 'Defensa',        left: 38, bottom: 22 },
-      { posicion: 'Defensa',        left: 62, bottom: 22 },
-      { posicion: 'Defensa',        left: 85, bottom: 22 },
-      { posicion: 'Centrocampista', left: 15, bottom: 48 },
-      { posicion: 'Centrocampista', left: 38, bottom: 48 },
-      { posicion: 'Centrocampista', left: 62, bottom: 48 },
-      { posicion: 'Centrocampista', left: 85, bottom: 48 },
-      { posicion: 'Delantero',      left: 33, bottom: 75 },
-      { posicion: 'Delantero',      left: 67, bottom: 75 },
+      { rol: 'Portero', left: 50, bottom: 5  },
+      { rol: 'LI',      left: 15, bottom: 22 },
+      { rol: 'DFC',     left: 38, bottom: 22 },
+      { rol: 'DFC',     left: 62, bottom: 22 },
+      { rol: 'LD',      left: 85, bottom: 22 },
+      { rol: 'MI',      left: 15, bottom: 48 },
+      { rol: 'MC',      left: 38, bottom: 48 },
+      { rol: 'MC',      left: 62, bottom: 48 },
+      { rol: 'MD',      left: 85, bottom: 48 },
+      { rol: 'DC',      left: 33, bottom: 75 },
+      { rol: 'DC',      left: 67, bottom: 75 },
     ]
   },
   '4-3-3': {
     slots: [
-      { posicion: 'Portero',        left: 50, bottom: 5  },
-      { posicion: 'Defensa',        left: 15, bottom: 22 },
-      { posicion: 'Defensa',        left: 38, bottom: 22 },
-      { posicion: 'Defensa',        left: 62, bottom: 22 },
-      { posicion: 'Defensa',        left: 85, bottom: 22 },
-      { posicion: 'Centrocampista', left: 22, bottom: 46 },
-      { posicion: 'Centrocampista', left: 50, bottom: 42 },
-      { posicion: 'Centrocampista', left: 78, bottom: 46 },
-      { posicion: 'Delantero',      left: 15, bottom: 75 },
-      { posicion: 'Delantero',      left: 50, bottom: 80 },
-      { posicion: 'Delantero',      left: 85, bottom: 75 },
+      { rol: 'Portero', left: 50, bottom: 5  },
+      { rol: 'LI',      left: 15, bottom: 22 },
+      { rol: 'DFC',     left: 38, bottom: 22 },
+      { rol: 'DFC',     left: 62, bottom: 22 },
+      { rol: 'LD',      left: 85, bottom: 22 },
+      { rol: 'MC',      left: 22, bottom: 46 },
+      { rol: 'MC',      left: 50, bottom: 42 },
+      { rol: 'MC',      left: 78, bottom: 46 },
+      { rol: 'EI',      left: 15, bottom: 75 },
+      { rol: 'DC',      left: 50, bottom: 80 },
+      { rol: 'ED',      left: 85, bottom: 75 },
     ]
   },
   '3-5-2': {
     slots: [
-      { posicion: 'Portero',        left: 50, bottom: 5  },
-      { posicion: 'Defensa',        left: 22, bottom: 20 },
-      { posicion: 'Defensa',        left: 50, bottom: 20 },
-      { posicion: 'Defensa',        left: 78, bottom: 20 },
-      { posicion: 'Centrocampista', left: 10, bottom: 48 },
-      { posicion: 'Centrocampista', left: 30, bottom: 48 },
-      { posicion: 'Centrocampista', left: 50, bottom: 48 },
-      { posicion: 'Centrocampista', left: 70, bottom: 48 },
-      { posicion: 'Centrocampista', left: 90, bottom: 48 },
-      { posicion: 'Delantero',      left: 33, bottom: 76 },
-      { posicion: 'Delantero',      left: 67, bottom: 76 },
+      { rol: 'Portero', left: 50, bottom: 5  },
+      { rol: 'DFC',     left: 22, bottom: 20 },
+      { rol: 'DFC',     left: 50, bottom: 20 },
+      { rol: 'DFC',     left: 78, bottom: 20 },
+      { rol: 'MI',      left: 10, bottom: 48 },
+      { rol: 'MC',      left: 30, bottom: 48 },
+      { rol: 'MC',      left: 50, bottom: 48 },
+      { rol: 'MC',      left: 70, bottom: 48 },
+      { rol: 'MD',      left: 90, bottom: 48 },
+      { rol: 'DC',      left: 33, bottom: 76 },
+      { rol: 'DC',      left: 67, bottom: 76 },
     ]
   },
 }
@@ -108,60 +125,93 @@ const cambiarFormacion = (nueva) => {
   formacionActual.value = nueva
   const slots = FORMACIONES[nueva].slots
 
-  // Contamos cuántos de cada posición necesita la formación
-  const necesarios = {}
+  // 1. Mapeamos los roles de los slots a las categorías de los jugadores
+  // Esto traduce 'LI', 'DFC', 'LD' a 'Defensa', etc.
+  const necesarios = {
+    'Portero': 0,
+    'Defensa': 0,
+    'Centrocampista': 0,
+    'Delantero': 0
+  }
+
   slots.forEach(s => {
-    necesarios[s.posicion] = (necesarios[s.posicion] || 0) + 1
+    if (s.rol === 'Portero') necesarios['Portero']++
+    else if (['LI', 'LD', 'DFC', 'Defensa'].includes(s.rol)) necesarios['Defensa']++
+    else if (['MC', 'MI', 'MD', 'Centrocampista'].includes(s.rol)) necesarios['Centrocampista']++
+    else if (['DC', 'EI', 'ED', 'Delantero'].includes(s.rol)) necesarios['Delantero']++
   })
 
-  // Mandamos al banquillo a los titulares que sobran por posición
-  const contadores = {}
+  // 2. Mandamos al banquillo a los que sobran
+  const contadores = { 'Portero': 0, 'Defensa': 0, 'Centrocampista': 0, 'Delantero': 0 }
+  
   jugadores.value.forEach(j => {
     if (!j.titular) return
-    contadores[j.posicion] = (contadores[j.posicion] || 0) + 1
+    contadores[j.posicion]++
     if (contadores[j.posicion] > (necesarios[j.posicion] || 0)) {
       j.titular = false
     }
   })
 
-  // Subimos suplentes de la posición que falte
-  const yaHay = {}
+  // 3. Subimos suplentes si faltan para completar los 11
+  const yaHay = { 'Portero': 0, 'Defensa': 0, 'Centrocampista': 0, 'Delantero': 0 }
   jugadores.value.filter(j => j.titular).forEach(j => {
-    yaHay[j.posicion] = (yaHay[j.posicion] || 0) + 1
+    yaHay[j.posicion]++
   })
-  jugadores.value.filter(j => !j.titular).forEach(j => {
+
+  jugadores.value.forEach(j => {
+    if (j.titular) return
     const necesita = necesarios[j.posicion] || 0
-    const tiene    = yaHay[j.posicion]      || 0
+    const tiene = yaHay[j.posicion] || 0
     if (tiene < necesita) {
       j.titular = true
-      yaHay[j.posicion] = tiene + 1
+      yaHay[j.posicion]++
     }
   })
 
   jugadores.value = [...jugadores.value]
 }
-
 const titularesPorSlot = computed(() => {
   const slots = FORMACIONES[formacionActual.value].slots
-  const contadores = {}
-  const porPosicion = {}
+  
+  // Filtramos los titulares por la posición que tienen en DatosDeLosJugadores.js
+  const pS = titulares.value.filter(j => j.posicion === 'Portero')
+  const dS = titulares.value.filter(j => j.posicion === 'Defensa')
+  const mS = titulares.value.filter(j => j.posicion === 'Centrocampista')
+  const fS = titulares.value.filter(j => j.posicion === 'Delantero')
 
-  titulares.value.forEach(j => {
-    if (!porPosicion[j.posicion]) porPosicion[j.posicion] = []
-    porPosicion[j.posicion].push(j)
-  })
+  let pIdx = 0, dIdx = 0, mIdx = 0, fIdx = 0
 
   return slots.map(slot => {
-    if (!contadores[slot.posicion]) contadores[slot.posicion] = 0
-    const jugador = (porPosicion[slot.posicion] || [])[contadores[slot.posicion]]
-    contadores[slot.posicion]++
-    return jugador || null
+    if (slot.rol === 'Portero') return pS[pIdx++] || null
+    if (['LI', 'LD', 'DFC', 'Defensa'].includes(slot.rol)) return dS[dIdx++] || null
+    if (['MC', 'MI', 'MD', 'Centrocampista'].includes(slot.rol)) return mS[mIdx++] || null
+    if (['DC', 'EI', 'ED', 'Delantero'].includes(slot.rol)) return fS[fIdx++] || null
+    return null
   })
 })
 
 watch(nombreEquipo, (nuevoNombre) => {
   localStorage.setItem('nombreMiEquipo', nuevoNombre)
 })
+
+const hacerCapitan = (jugador) => {
+  if (!jugador) return
+
+  // 1. Buscamos al que ya es capitán y le quitamos el rango
+  jugadores.value.forEach(j => {
+    if (j.capitan) j.capitan = false
+  })
+
+  // 2. Buscamos al jugador clickeado en el array original y lo hacemos capitán
+  const realIndex = jugadores.value.findIndex(j => j.id === jugador.id)
+  if (realIndex !== -1) {
+    jugadores.value[realIndex].capitan = true
+  }
+
+  jugadores.value = [...jugadores.value]
+  
+  localStorage.setItem('misJugadores', JSON.stringify(jugadores.value))
+}
 </script>
 
 <template>
@@ -195,7 +245,8 @@ watch(nombreEquipo, (nuevoNombre) => {
         <template v-if="titularesPorSlot[index]">
           <div class="ficha-campo" :class="{'es-capitan': titularesPorSlot[index].capitan}"
                draggable="true"
-               @dragstart="empiezaArrastre(index)">
+               @dragstart="empiezaArrastre(index)"
+               @dblclick="hacerCapitan(titularesPorSlot[index])"> 
             <div class="contenedor-avatar">
               <img v-if="titularesPorSlot[index].foto" :src="titularesPorSlot[index].foto" class="foto-miniatura">
               <div v-else class="inicial-miniatura">{{ titularesPorSlot[index].nombre.charAt(0) }}</div>
@@ -305,24 +356,6 @@ watch(nombreEquipo, (nuevoNombre) => {
   cursor: grabbing;
   opacity: 0.5;
 }
-
-/* Posiciones */
-.portero { bottom: 5%; left: 50%; }
-.defensa { bottom: 22%; }
-.defensa:nth-of-type(4n+1) { left: 20%; }
-.defensa:nth-of-type(4n+2) { left: 40%; }
-.defensa:nth-of-type(4n+3) { left: 60%; }
-.defensa:nth-of-type(4n+4) { left: 80%; }
-
-.centrocampista { bottom: 45%; }
-.centrocampista:nth-of-type(3n+1) { left: 25%; }
-.centrocampista:nth-of-type(3n+2) { left: 50%; }
-.centrocampista:nth-of-type(3n+3) { left: 75%; }
-
-.delantero { bottom: 70%; } 
-.delantero:nth-of-type(3n+1) { left: 30%; }
-.delantero:nth-of-type(3n+2) { left: 50%; }
-.delantero:nth-of-type(3n+3) { left: 70%; }
 
 .ficha-campo {
   display: flex;
@@ -501,22 +534,27 @@ watch(nombreEquipo, (nuevoNombre) => {
   color: black;
 }
 
-/* --- MOVIMIENTOS SEGÚN LA FORMACIÓN --- */
-
-/* Si es 4-3-3, adelantamos un poco a los delanteros y centrocampistas */
-.formacion-4-3-3 .centrocampista { bottom: 48%; }
-.formacion-4-3-3 .delantero { bottom: 75%; }
-
-/* Si es 3-5-2, reubicamos defensas y centrocampistas */
-.formacion-3-5-2 .defensa { bottom: 18%; }
-/* Ajuste para que solo haya 3 defensas visualmente */
-.formacion-3-5-2 .defensa:nth-of-type(4) { display: none; } 
-
-.formacion-3-5-2 .centrocampista { bottom: 50%; }
-.formacion-3-5-2 .delantero { bottom: 78%; }
-
-/* Transición suave para que "vuelen" a su sitio */
 .jugador-posicionado {
   transition: all 0.6s ease-in-out;
+}
+
+.ficha-campo {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.ficha-campo:hover {
+  transform: scale(1.1); /* Se hace un pelín más grande al pasar el ratón */
+}
+
+.brazalete-capitan {
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  animation: pulso-capitan 2s infinite;
+}
+
+@keyframes pulso-capitan {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 </style>
