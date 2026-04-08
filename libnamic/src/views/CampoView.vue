@@ -15,50 +15,44 @@ const empiezaArrastreSuplente = (index) => {
   esSuplenteArrastrado.value = true
 }
 
+const idJugadorEntrante = ref(null) 
+
 const soltarJugador = (indexDestino) => {
   const indexOrigen = jugadorArrastradoIndex.value
-  
-  if (indexOrigen !== null) {
-    // 1. Conseguimos el jugador que estamos arrastrando
-    const jugadorOrigen = esSuplenteArrastrado.value 
-      ? suplentes.value[indexOrigen] 
-      : titularesPorSlot.value[indexOrigen] 
+  if (indexOrigen === null) return
 
-    // 2. Conseguimos el jugador que está en el hueco de destino
+  if (esSuplenteArrastrado.value) {
+    // CASO: Suplente entra al campo
+    const jugadorEntra = suplentes.value[indexOrigen]
+    const jugadorSale = titularesPorSlot.value[indexDestino]
+
+    if (jugadorEntra && jugadorSale) {
+      idJugadorEntrante.value = jugadorEntra.id // Activamos flecha
+      
+      const idxIn = jugadores.value.findIndex(j => j.id === jugadorEntra.id)
+      const idxOut = jugadores.value.findIndex(j => j.id === jugadorSale.id)
+      
+      jugadores.value[idxIn].titular = true
+      jugadores.value[idxOut].titular = false
+
+      setTimeout(() => { idJugadorEntrante.value = null }, 3000) // Desaparece en 3s
+    }
+  } else {
+    // CASO: Intercambio entre titulares
+    const jugadorOrigen = titularesPorSlot.value[indexOrigen]
     const jugadorDestino = titularesPorSlot.value[indexDestino]
 
-    if (!jugadorOrigen) return // Seguridad
-
-    // 3. Buscamos sus posiciones reales en el array principal
-    const realIndexOrigen = jugadores.value.findIndex(j => j.id === jugadorOrigen.id)
-    
-    if (esSuplenteArrastrado.value) {
-      // CASO A: Traemos a alguien del banquillo al campo
-      if (jugadorDestino) {
-        // Intercambiamos estados: el que entra es titular, el que sale es suplente
-        const realIndexDestino = jugadores.value.findIndex(j => j.id === jugadorDestino.id)
-        jugadores.value[realIndexOrigen].titular = true
-        jugadores.value[realIndexDestino].titular = false
-      } else {
-        // Si el hueco estaba vacío 
-        jugadores.value[realIndexOrigen].titular = true
-      }
-    } else {
-      // CASO B: Intercambio entre dos jugadores que ya están en el campo
-      if (jugadorDestino && jugadorOrigen.id !== jugadorDestino.id) {
-        const realIndexDestino = jugadores.value.findIndex(j => j.id === jugadorDestino.id)
-        
-        // Intercambiamos sus posiciones en el array para que visualmente cambien
-        const temp = jugadores.value[realIndexOrigen]
-        jugadores.value[realIndexOrigen] = jugadores.value[realIndexDestino]
-        jugadores.value[realIndexDestino] = temp
-      }
+    if (jugadorOrigen && jugadorDestino && jugadorOrigen.id !== jugadorDestino.id) {
+      const realIdxOri = jugadores.value.findIndex(j => j.id === jugadorOrigen.id)
+      const realIdxDes = jugadores.value.findIndex(j => j.id === jugadorDestino.id)
+      
+      const temp = jugadores.value[realIdxOri]
+      jugadores.value[realIdxOri] = jugadores.value[realIdxDes]
+      jugadores.value[realIdxDes] = temp
     }
-
-    jugadores.value = [...jugadores.value]
   }
   
-  // Limpiamos el estado del arrastre
+  jugadores.value = [...jugadores.value]
   jugadorArrastradoIndex.value = null
   esSuplenteArrastrado.value = false
 }
@@ -212,42 +206,57 @@ const hacerCapitan = (jugador) => {
   
   localStorage.setItem('misJugadores', JSON.stringify(jugadores.value))
 }
+
+const limpiarCampo = () => {
+  // Confirmamos para que no borren el equipo por error
+  if (confirm('¿Quieres mandar a todos los jugadores al banquillo?')) {
+    jugadores.value.forEach(j => {
+      j.titular = false
+    })
+    // Forzamos la actualización
+    jugadores.value = [...jugadores.value]
+  }
+}
 </script>
 
 <template>
   <div class="escenario">
+    
     <div class="selector-tactico">
       <button @click="cambiarFormacion('4-4-2')" :class="{activo: formacionActual === '4-4-2'}">4-4-2</button>
       <button @click="cambiarFormacion('4-3-3')" :class="{activo: formacionActual === '4-3-3'}">4-3-3</button>
       <button @click="cambiarFormacion('3-5-2')" :class="{activo: formacionActual === '3-5-2'}">3-5-2</button>
+      <button @click="limpiarCampo" class="btn-limpiar">🗑️ Limpiar</button>
     </div>
 
     <div :class="['campo-futbol', 'formacion-' + formacionActual]">
-      <input 
-        v-model="nombreEquipo" 
-        type="text" 
-        placeholder="NOMBRE DE TU EQUIPO" 
-        class="input-nombre-equipo"
-      >
+      <input v-model="nombreEquipo" type="text" placeholder="NOMBRE DE TU EQUIPO" class="input-nombre-equipo">
+
       <div class="linea-medio"></div>
       <div class="circulo-central"></div>
       <div class="area-grande"></div>
       <div class="area-pequeña"></div>
+
+      <div v-if="titulares.length === 0" class="campo-vacio-msg">
+        ARRASTRA JUGADORES PARA EMPEZAR
+      </div>
       
-      <div
-        v-for="(slot, index) in FORMACIONES[formacionActual].slots"
-        :key="index"
-        class="jugador-posicionado"
-        :style="{ left: slot.left + '%', bottom: slot.bottom + '%' }"
-        @dragover.prevent
-        @drop="soltarJugador(index)"
-      >
+      <div v-for="(slot, index) in FORMACIONES[formacionActual].slots"
+           :key="index"
+           class="jugador-posicionado"
+           :style="{ left: slot.left + '%', bottom: slot.bottom + '%' }"
+           @dragover.prevent
+           @drop="soltarJugador(index)">
+
         <template v-if="titularesPorSlot[index]">
-          <div class="ficha-campo" :class="{'es-capitan': titularesPorSlot[index].capitan}"
+          <div class="ficha-campo" 
+               :class="{'es-capitan': titularesPorSlot[index].capitan}"
                draggable="true"
                @dragstart="empiezaArrastre(index)"
                @dblclick="hacerCapitan(titularesPorSlot[index])"> 
+            
             <div class="contenedor-avatar">
+              <div v-if="idJugadorEntrante === titularesPorSlot[index].id" class="indicador-cambio">▲</div>
               <img v-if="titularesPorSlot[index].foto" :src="titularesPorSlot[index].foto" class="foto-miniatura">
               <div v-else class="inicial-miniatura">{{ titularesPorSlot[index].nombre.charAt(0) }}</div>
               <span v-if="titularesPorSlot[index].capitan" class="brazalete-capitan">C</span>
@@ -256,9 +265,7 @@ const hacerCapitan = (jugador) => {
           </div>
         </template>
       </div>
-
-    </div> <!-- cierre campo-futbol -->
-
+    </div> 
 
     <div class="zona-banquillo-campo">
       <h3 class="titulo-banquillo">BANQUILLO</h3>
@@ -283,7 +290,7 @@ const hacerCapitan = (jugador) => {
       <p v-if="titulares.length !== 11" class="aviso">Debes elegir exactamente 11 titulares</p>
     </div>
 
-  </div>
+  </div> 
 </template>
 <style scoped>
 .escenario {
@@ -303,7 +310,7 @@ const hacerCapitan = (jugador) => {
   border: 3px solid white;
   position: relative;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   background-image: repeating-linear-gradient(
     0deg,
     #2e7d32,
@@ -435,6 +442,8 @@ const hacerCapitan = (jugador) => {
   font-family: 'Arial Black', sans-serif;
   letter-spacing: 2px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 1;
 }
 
 .marcador-info {
@@ -557,4 +566,58 @@ const hacerCapitan = (jugador) => {
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
+
+/* Animación para la flecha de cambio */
+.indicador-cambio {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #00ff00;
+  font-size: 20px;
+  filter: drop-shadow(0 0 5px #00ff00);
+  animation: salto-flecha 0.6s infinite alternate;
+  z-index: 30;
+}
+
+@keyframes salto-flecha {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-8px); }
+}
+
+/* Efecto al pasar el ratón por la ficha */
+.ficha-campo {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.ficha-campo:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+.btn-limpiar {
+  background: #441111 !important; /* Un rojo oscuro para indicar acción de borrar */
+  color: #ffaaaa !important;
+  border-color: #ff4444 !important;
+  margin-left: 15px; /* Separación de las formaciones */
+}
+
+.btn-limpiar:hover {
+  background: #661111 !important;
+  transform: scale(1.05);
+}
+.campo-vacio-msg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+  pointer-events: none; /* Importante para que no estorbe al soltar jugadores */
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+}
+
 </style>
