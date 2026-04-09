@@ -1,6 +1,46 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { listaCompartida as jugadores } from '@/DatosDeLosJugadores.js'
+import {onMounted} from 'vue'
+
+
+const canvasReferencia = ref(null)
+const dibujando = ref(false)
+const ctx= ref(null)
+const modoPizarra = ref(false)
+
+onMounted(()=> {
+  ctx.value = canvasReferencia.value.getContext('2d')
+  ctx.value.strokeStyle ='#ffff00'
+  ctx.value.lineWidth=3
+  ctx.value.lineJoin = 'round'
+  ctx.value.lineCap = 'round'
+
+})
+
+const empezarDibujo = (e) => {
+  if (!modoPizarra.value) return;
+  dibujando.value = true;
+  const {offsetX, offsetY} =e;
+  ctx.value.beginPath();
+  ctx.value.moveTo(offsetX, offsetY);
+  
+}
+
+const dibujar = (e) =>{
+  if(!dibujando.value) return
+  const {offsetX, offsetY}=e
+  ctx.value.lineTo(offsetX,offsetY)
+  ctx.value.stroke()
+}
+
+const pararDibujo= () =>{
+  dibujando.value=false
+}
+
+const borrarPizarra = () => {
+  ctx.value.clearRect(0,0,canvasReferencia.value.width, canvasReferencia.value.height)
+}
 
 const jugadorArrastradoIndex = ref(null) 
 const esSuplenteArrastrado = ref(false) 
@@ -21,23 +61,23 @@ const soltarJugador = (indexDestino) => {
   const indexOrigen = jugadorArrastradoIndex.value
   if (indexOrigen === null) return
 
-  if (esSuplenteArrastrado.value) {
-    // CASO: Suplente entra al campo
-    const jugadorEntra = suplentes.value[indexOrigen]
-    const jugadorSale = titularesPorSlot.value[indexDestino]
+   if (esSuplenteArrastrado.value) {
+  const jugadorEntra = suplentes.value[indexOrigen];
+  const jugadorSale = titularesPorSlot.value[indexDestino]; // Puede ser null
 
-    if (jugadorEntra && jugadorSale) {
-      idJugadorEntrante.value = jugadorEntra.id // Activamos flecha
-      
-      const idxIn = jugadores.value.findIndex(j => j.id === jugadorEntra.id)
-      const idxOut = jugadores.value.findIndex(j => j.id === jugadorSale.id)
-      
-      jugadores.value[idxIn].titular = true
-      jugadores.value[idxOut].titular = false
+  if (jugadorEntra) {
+    const idxIn = jugadores.value.findIndex(j => j.id === jugadorEntra.id);
+    jugadores.value[idxIn].titular = true; // El suplente ahora es titular
 
-      setTimeout(() => { idJugadorEntrante.value = null }, 3000) // Desaparece en 3s
+    if (jugadorSale) {
+      const idxOut = jugadores.value.findIndex(j => j.id === jugadorSale.id);
+      jugadores.value[idxOut].titular = false;
     }
-  } else {
+    
+    idJugadorEntrante.value = jugadorEntra.id;
+    setTimeout(() => { idJugadorEntrante.value = null }, 3000);
+  }
+}else {
     // CASO: Intercambio entre titulares
     const jugadorOrigen = titularesPorSlot.value[indexOrigen]
     const jugadorDestino = titularesPorSlot.value[indexDestino]
@@ -119,8 +159,7 @@ const cambiarFormacion = (nueva) => {
   formacionActual.value = nueva
   const slots = FORMACIONES[nueva].slots
 
-  // 1. Mapeamos los roles de los slots a las categorías de los jugadores
-  // Esto traduce 'LI', 'DFC', 'LD' a 'Defensa', etc.
+  
   const necesarios = {
     'Portero': 0,
     'Defensa': 0,
@@ -135,7 +174,6 @@ const cambiarFormacion = (nueva) => {
     else if (['DC', 'EI', 'ED', 'Delantero'].includes(s.rol)) necesarios['Delantero']++
   })
 
-  // 2. Mandamos al banquillo a los que sobran
   const contadores = { 'Portero': 0, 'Defensa': 0, 'Centrocampista': 0, 'Delantero': 0 }
   
   jugadores.value.forEach(j => {
@@ -146,7 +184,6 @@ const cambiarFormacion = (nueva) => {
     }
   })
 
-  // 3. Subimos suplentes si faltan para completar los 11
   const yaHay = { 'Portero': 0, 'Defensa': 0, 'Centrocampista': 0, 'Delantero': 0 }
   jugadores.value.filter(j => j.titular).forEach(j => {
     yaHay[j.posicion]++
@@ -217,6 +254,9 @@ const limpiarCampo = () => {
     jugadores.value = [...jugadores.value]
   }
 }
+
+
+
 </script>
 
 <template>
@@ -227,6 +267,17 @@ const limpiarCampo = () => {
       <button @click="cambiarFormacion('4-3-3')" :class="{activo: formacionActual === '4-3-3'}">4-3-3</button>
       <button @click="cambiarFormacion('3-5-2')" :class="{activo: formacionActual === '3-5-2'}">3-5-2</button>
       <button @click="limpiarCampo" class="btn-limpiar">🗑️ Limpiar</button>
+
+      <button 
+        @click="modoPizarra = !modoPizarra" 
+        :class="{ activo: modoPizarra }"
+      >
+        {{ modoPizarra ? '💾 Guardar Táctica' : '✏️ Dibujar' }}
+      </button>
+
+      <button v-if="modoPizarra" @click="borrarPizarra" class="btn-pizarra">
+        🗑️ Borrar Dibujo
+      </button>
     </div>
 
     <div :class="['campo-futbol', 'formacion-' + formacionActual]">
@@ -237,6 +288,20 @@ const limpiarCampo = () => {
       <div class="area-grande"></div>
       <div class="area-pequeña"></div>
 
+      <canvas 
+        ref="canvasReferencia"
+        width="500" 
+        height="650"
+        class="pizarra-tactica"
+        :class="{ 'pizarra-activa': modoPizarra }"
+        @mousedown="empezarDibujo"
+        @mousemove="dibujar"
+        @mouseup="pararDibujo"
+        @mouseleave="pararDibujo"
+      ></canvas>
+
+      <button @click="borrarPizarra" class="btn-pizarra">✏️ Borrar Táctica</button>
+      
       <div v-if="titulares.length === 0" class="campo-vacio-msg">
         ARRASTRA JUGADORES PARA EMPEZAR
       </div>
@@ -620,4 +685,53 @@ const limpiarCampo = () => {
   border-radius: 10px;
 }
 
+.pizarra-tactica {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  cursor: crosshair;
+  touch-action: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Esta clase se activará solo cuando modoPizarra sea true */
+.pizarra-activa {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.btn-pizarra {
+  background: #333 !important;
+  color: #ffff00 !important;
+  border-color: #ffff00 !important;
+}
+
+.jugador-posicionado {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 10;
+  /* Área mínima para poder detectar el "drop" */
+  width: 65px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s ease;
+}
+
+/* Círculo guía que aparece solo cuando el slot está vacío */
+.jugador-posicionado:not(:has(.ficha-campo)) {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Feedback visual al pasar un jugador por encima de un hueco */
+.jugador-posicionado:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffcc00;
+}
 </style>
