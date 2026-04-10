@@ -204,20 +204,9 @@ const cambiarFormacion = (nueva) => {
 const titularesPorSlot = computed(() => {
   const slots = FORMACIONES[formacionActual.value].slots
   
-  // Filtramos los titulares por la posición que tienen en DatosDeLosJugadores.js
-  const pS = titulares.value.filter(j => j.posicion === 'Portero')
-  const dS = titulares.value.filter(j => j.posicion === 'Defensa')
-  const mS = titulares.value.filter(j => j.posicion === 'Centrocampista')
-  const fS = titulares.value.filter(j => j.posicion === 'Delantero')
 
-  let pIdx = 0, dIdx = 0, mIdx = 0, fIdx = 0
-
-  return slots.map(slot => {
-    if (slot.rol === 'Portero') return pS[pIdx++] || null
-    if (['LI', 'LD', 'DFC', 'Defensa'].includes(slot.rol)) return dS[dIdx++] || null
-    if (['MC', 'MI', 'MD', 'Centrocampista'].includes(slot.rol)) return mS[mIdx++] || null
-    if (['DC', 'EI', 'ED', 'Delantero'].includes(slot.rol)) return fS[fIdx++] || null
-    return null
+  return slots.map((_, index) => {
+    return titulares.value[index] || null
   })
 })
 
@@ -255,8 +244,9 @@ const limpiarCampo = () => {
   }
 }
 
-
-
+watch(jugadores, (nuevosDatos) => {
+  localStorage.setItem('miPlantillaGuardada', JSON.stringify(nuevosDatos))
+}, { deep: true })
 </script>
 
 <template>
