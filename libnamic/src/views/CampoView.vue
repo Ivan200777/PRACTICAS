@@ -1,7 +1,9 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { listaCompartida as jugadores } from '@/DatosDeLosJugadores.js'
-import {onMounted} from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { listaCompartida as datosBase } from '@/DatosDeLosJugadores.js'
+
+
+const jugadores = ref(JSON.parse(localStorage.getItem('miPlantillaGuardada')) || datosBase)
 
 
 const canvasReferencia = ref(null)
@@ -247,6 +249,18 @@ const limpiarCampo = () => {
 watch(jugadores, (nuevosDatos) => {
   localStorage.setItem('miPlantillaGuardada', JSON.stringify(nuevosDatos))
 }, { deep: true })
+
+
+const busqueda = ref('')
+const suplentesFiltrados = computed(() => {
+  const listaSuplentes = jugadores.value.filter(j => !j.titular)
+  if (!busqueda.value) return listaSuplentes
+  
+  return listaSuplentes.filter(j => 
+    j.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
+  )
+})
+
 </script>
 
 <template>
@@ -311,10 +325,12 @@ watch(jugadores, (nuevosDatos) => {
                @dblclick="hacerCapitan(titularesPorSlot[index])"> 
             
             <div class="contenedor-avatar">
-              <div v-if="idJugadorEntrante === titularesPorSlot[index].id" class="indicador-cambio">▲</div>
               <img v-if="titularesPorSlot[index].foto" :src="titularesPorSlot[index].foto" class="foto-miniatura">
               <div v-else class="inicial-miniatura">{{ titularesPorSlot[index].nombre.charAt(0) }}</div>
-              <span v-if="titularesPorSlot[index].capitan" class="brazalete-capitan">C</span>
+  
+              <span class="dorsal-ficha">{{ titularesPorSlot[index].id || '?' }}</span>
+  
+              <div v-if="idJugadorEntrante === titularesPorSlot[index].id" class="indicador-cambio">▲</div>
             </div>
             <span class="nombre-campo">{{ titularesPorSlot[index].nombre }}</span>
           </div>
@@ -322,30 +338,34 @@ watch(jugadores, (nuevosDatos) => {
       </div>
     </div> 
 
-    <div class="zona-banquillo-campo">
-      <h3 class="titulo-banquillo">BANQUILLO</h3>
-      <div class="contenedor-suplentes">
-        <div v-for="(j, index) in suplentes" 
-             :key="j.id" 
-             class="mini-tarjeta-suplente"
-             draggable="true"
-             @dragstart="empiezaArrastreSuplente(index)">
-          <div class="foto-suplente">
-            <img v-if="j.foto" :src="j.foto">
-            <span v-else>{{ j.nombre.charAt(0) }}</span>
-          </div>
-          <p class="nombre-suplente">{{ j.nombre }}</p>
-          <small class="pos-suplente">{{ j.posicion }}</small>
-        </div>
+  <div class="zona-banquillo-campo">
+  <h3 class="titulo-banquillo">BANQUILLO</h3>
+  
+  <input v-model="busqueda" type="text" placeholder="🔍 Buscar jugador..." class="buscador-suplentes">
+
+  <div class="contenedor-suplentes">
+    <div v-for="(j, index) in suplentesFiltrados" 
+         :key="j.id" 
+         class="mini-tarjeta-suplente"
+         draggable="true"
+         @dragstart="empiezaArrastreSuplente(index)">
+      <div class="foto-suplente">
+        <img v-if="j.foto" :src="j.foto">
+        <span v-else>{{ j.nombre.charAt(0) }}</span>
+      </div>
+      <p class="nombre-suplente">{{ j.nombre }}</p>
+      <small class="pos-suplente">#{{ j.dorsal || '?' }} - {{ j.posicion }}</small>
+       </div>
       </div>
     </div>
+</div>
 
     <div class="marcador-info" :class="{ 'error': titulares.length !== 11 }">
       Titulares: {{ titulares.length }} / 11
       <p v-if="titulares.length !== 11" class="aviso">Debes elegir exactamente 11 titulares</p>
     </div>
 
-  </div> 
+
 </template>
 <style scoped>
 .escenario {
@@ -703,7 +723,6 @@ watch(jugadores, (nuevosDatos) => {
   position: absolute;
   transform: translateX(-50%);
   z-index: 10;
-  /* Área mínima para poder detectar el "drop" */
   width: 65px;
   height: 65px;
   display: flex;
@@ -712,7 +731,7 @@ watch(jugadores, (nuevosDatos) => {
   transition: all 0.5s ease;
 }
 
-/* Círculo guía que aparece solo cuando el slot está vacío */
+
 .jugador-posicionado:not(:has(.ficha-campo)) {
   border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: 50%;
@@ -723,5 +742,39 @@ watch(jugadores, (nuevosDatos) => {
 .jugador-posicionado:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: #ffcc00;
+}
+
+.dorsal-ficha {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  background: #ff4444;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid white;
+  z-index: 20;
+}
+
+.buscador-suplentes {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  margin-bottom: 20px;
+  background: #222;
+  border: 1px solid #d4af37;
+  border-radius: 8px;
+  color: white;
+}
+
+.buscador-suplentes:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
 }
 </style>
