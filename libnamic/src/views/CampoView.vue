@@ -261,6 +261,37 @@ const suplentesFiltrados = computed(() => {
   )
 })
 
+const idJugadorEnFoco = ref(null)
+
+const resaltarPosiciones = (jugador) => {
+  idJugadorEnFoco.value = jugador
+}
+
+const quitarResaltado = () => {
+  idJugadorEnFoco.value = null
+}
+
+const esPosicionCorrecta = (rolSlot) => {
+  if (!idJugadorEnFoco.value) return false
+  
+  const pos = idJugadorEnFoco.value.posicion
+  if (pos === 'Portero' && rolSlot === 'Portero') return true
+  if (pos === 'Defensa' && ['LI', 'LD', 'DFC'].includes(rolSlot)) return true
+  if (pos === 'Centrocampista' && ['MC', 'MI', 'MD'].includes(rolSlot)) return true
+  if (pos === 'Delantero' && ['DC', 'EI', 'ED'].includes(rolSlot)) return true
+  
+  return false
+}
+
+const obtenerEmojiPosicion = (posicion) => {
+  const mapa = {
+    'Portero': '🧤',
+    'Defensa': '🛡️',
+    'Centrocampista': '🪄',
+    'Delantero': '🎯'
+  }
+  return mapa[posicion] || '🏃'
+}
 </script>
 
 <template>
@@ -315,7 +346,8 @@ const suplentesFiltrados = computed(() => {
            class="jugador-posicionado"
            :style="{ left: slot.left + '%', bottom: slot.bottom + '%' }"
            @dragover.prevent
-           @drop="soltarJugador(index)">
+           @drop="soltarJugador(index)"
+           :class="{ 'posicion-recomendada': esPosicionCorrecta(slot.rol) }">
 
         <template v-if="titularesPorSlot[index]">
           <div class="ficha-campo" 
@@ -332,8 +364,11 @@ const suplentesFiltrados = computed(() => {
   
               <div v-if="idJugadorEntrante === titularesPorSlot[index].id" class="indicador-cambio">▲</div>
             </div>
-            <span class="nombre-campo">{{ titularesPorSlot[index].nombre }}</span>
-          </div>
+              <span class="nombre-campo">
+                <span class="emoji-posicion">{{ obtenerEmojiPosicion(titularesPorSlot[index].posicion) }}</span>
+                  {{ titularesPorSlot[index].nombre }}
+              </span>          
+              </div>
         </template>
       </div>
     </div> 
@@ -348,7 +383,9 @@ const suplentesFiltrados = computed(() => {
          :key="j.id" 
          class="mini-tarjeta-suplente"
          draggable="true"
-         @dragstart="empiezaArrastreSuplente(index)">
+         @dragstart="empiezaArrastreSuplente(index)"
+         @mouseenter="resaltarPosiciones(j)"
+         @mouseleave="quitarResaltado">
       <div class="foto-suplente">
         <img v-if="j.foto" :src="j.foto">
         <span v-else>{{ j.nombre.charAt(0) }}</span>
@@ -776,5 +813,25 @@ const suplentesFiltrados = computed(() => {
 .buscador-suplentes:focus {
   border-color: #ffffff;
   box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+}
+
+.posicion-recomendada {
+  box-shadow: 0 0 20px #ffcc00 !important;
+  border: 2px solid #ffcc00 !important;
+  transform: translateX(-50%) scale(1.2) !important;
+}
+
+.ficha-campo {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.4));
+  border-radius: 10px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.es-capitan {
+  background: linear-gradient(135deg, rgba(255, 204, 0, 0.2), rgba(0, 0, 0, 0.6)) !important;
+  border: 1px solid #ffcc00 !important;
 }
 </style>
