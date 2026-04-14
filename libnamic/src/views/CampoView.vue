@@ -292,6 +292,38 @@ const obtenerEmojiPosicion = (posicion) => {
   }
   return mapa[posicion] || '🏃'
 }
+
+const guardarEnSlot = (numeroSlot) => {
+  const nombreKey = `miPlantilla_Slot_${numeroSlot}`;
+  localStorage.setItem(nombreKey, JSON.stringify(jugadores.value));
+  localStorage.setItem(`${nombreKey}_formacion`, formacionActual.value);
+  alert(`✅ Táctica guardada en el Slot ${numeroSlot}`);
+}
+
+const cargarSlot = (numeroSlot) => {
+  const nombreKey = `miPlantilla_Slot_${numeroSlot}`;
+  const datosGuardados = localStorage.getItem(nombreKey);
+  const formacionGuardada = localStorage.getItem(`${nombreKey}_formacion`);
+  
+  if (datosGuardados) {
+    jugadores.value = JSON.parse(datosGuardados);
+    if (formacionGuardada) formacionActual.value = formacionGuardada;
+    alert(`📂 Slot ${numeroSlot} cargado con éxito`);
+  } else {
+    alert(`❌ El Slot ${numeroSlot} está vacío`);
+  }
+}
+
+const jugadorSeleccionado = ref(null);
+
+const abrirDetalles = (jugador) => {
+  if (!jugador) return;
+  jugadorSeleccionado.value = jugador;
+}
+
+const cerrarDetalles = () => {
+  jugadorSeleccionado.value = null;
+}
 </script>
 
 <template>
@@ -302,6 +334,18 @@ const obtenerEmojiPosicion = (posicion) => {
       <button @click="cambiarFormacion('4-3-3')" :class="{activo: formacionActual === '4-3-3'}">4-3-3</button>
       <button @click="cambiarFormacion('3-5-2')" :class="{activo: formacionActual === '3-5-2'}">3-5-2</button>
       <button @click="limpiarCampo" class="btn-limpiar">🗑️ Limpiar</button>
+      <div class="contenedor-slots">
+        <div class="grupo-slot">
+          <span>Slot 1:</span>
+          <button @click="guardarEnSlot(1)">💾 Guardar</button>
+          <button @click="cargarSlot(1)">📂 Cargar</button>
+        </div>
+        <div class="grupo-slot">
+          <span>Slot 2:</span>
+          <button @click="guardarEnSlot(2)">💾 Guardar</button>
+          <button @click="cargarSlot(2)">📂 Cargar</button>
+        </div>
+      </div>
 
       <button 
         @click="modoPizarra = !modoPizarra" 
@@ -354,7 +398,8 @@ const obtenerEmojiPosicion = (posicion) => {
                :class="{'es-capitan': titularesPorSlot[index].capitan}"
                draggable="true"
                @dragstart="empiezaArrastre(index)"
-               @dblclick="hacerCapitan(titularesPorSlot[index])"> 
+               @dblclick="hacerCapitan(titularesPorSlot[index])"
+               @click="abrirDetalles(titularesPorSlot[index])"> 
             
             <div class="contenedor-avatar">
               <img v-if="titularesPorSlot[index].foto" :src="titularesPorSlot[index].foto" class="foto-miniatura">
@@ -385,7 +430,8 @@ const obtenerEmojiPosicion = (posicion) => {
          draggable="true"
          @dragstart="empiezaArrastreSuplente(index)"
          @mouseenter="resaltarPosiciones(j)"
-         @mouseleave="quitarResaltado">
+         @mouseleave="quitarResaltado"
+         @click="abrirDetalles(j)">
       <div class="foto-suplente">
         <img v-if="j.foto" :src="j.foto">
         <span v-else>{{ j.nombre.charAt(0) }}</span>
@@ -400,6 +446,47 @@ const obtenerEmojiPosicion = (posicion) => {
     <div class="marcador-info" :class="{ 'error': titulares.length !== 11 }">
       Titulares: {{ titulares.length }} / 11
       <p v-if="titulares.length !== 11" class="aviso">Debes elegir exactamente 11 titulares</p>
+
+      <Transition name="fade">
+  <div v-if="jugadorSeleccionado" class="capa-oscura" @click="cerrarDetalles">
+    <div class="tarjeta-cromo" @click.stop>
+      
+      <div class="cromo-header">
+        <span class="cromo-dorsal">#{{ jugadorSeleccionado.id }}</span>
+        <img v-if="jugadorSeleccionado.foto" :src="jugadorSeleccionado.foto" class="cromo-foto">
+        <div v-else class="cromo-foto-vacia">{{ jugadorSeleccionado.nombre.charAt(0) }}</div>
+      </div>
+
+      <div class="cromo-body">
+        <h2>{{ jugadorSeleccionado.nombre }}</h2>
+        <p class="cromo-pos">{{ obtenerEmojiPosicion(jugadorSeleccionado.posicion) }} {{ jugadorSeleccionado.posicion }}</p>
+        
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span>GOLES</span> {{ jugadorSeleccionado.goles || 0 }}
+          </div>
+          <div class="stat-item">
+            <span>ASIST.</span> {{ jugadorSeleccionado.asistencias || 0 }}
+          </div>
+          <div class="stat-item">
+            <span>ROJAS</span> {{ jugadorSeleccionado.rojas || 0 }}
+          </div>
+          <div class="stat-item">
+            <span>AMARILLAS</span> {{ jugadorSeleccionado.amarillas || 0 }}
+          </div>
+          <div class="stat-item">
+            <span>TÍTULOS</span> {{ jugadorSeleccionado.titulos || 0 }}
+          </div>
+          <div class="stat-item">
+            <span>ESTADO</span> {{ jugadorSeleccionado.titular ? 'Titular' : 'Suplente' }}
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn-cerrar-cromo" @click="cerrarDetalles">CERRAR</button>
+    </div>
+  </div>
+</Transition>
     </div>
 
 
@@ -834,4 +921,40 @@ const obtenerEmojiPosicion = (posicion) => {
   background: linear-gradient(135deg, rgba(255, 204, 0, 0.2), rgba(0, 0, 0, 0.6)) !important;
   border: 1px solid #ffcc00 !important;
 }
+
+/* Estilos Slots */
+.contenedor-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px;
+  border-radius: 8px;
+}
+.grupo-slot span { color: #d4af37; font-size: 12px; margin-right: 5px; }
+
+.capa-oscura {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.85);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+}
+.tarjeta-cromo {
+  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+  border: 3px solid #d4af37;
+  width: 280px; padding: 20px;
+  border-radius: 20px; text-align: center;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+}
+.cromo-foto { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #d4af37; object-fit: cover; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+.stat-item { background: rgba(255,255,255,0.1); padding: 5px; border-radius: 5px; font-size: 14px; color: white; }
+.stat-item span { color: #d4af37; font-weight: bold; margin-right: 5px; }
+.btn-cerrar-cromo { margin-top: 20px; background: #d4af37; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 5px; }
+
+/* Una animación, para que no esté tan aburridete */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
