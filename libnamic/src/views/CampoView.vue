@@ -395,12 +395,14 @@ const cerrarDetalles = () => {
 
         <template v-if="titularesPorSlot[index]">
           <div class="ficha-campo" 
-               :class="{'es-capitan': titularesPorSlot[index].capitan}"
-               draggable="true"
-               @dragstart="empiezaArrastre(index)"
-               @dblclick="hacerCapitan(titularesPorSlot[index])"
-               @click="abrirDetalles(titularesPorSlot[index])"> 
-            
+            :class="[
+            {'es-capitan': titularesPorSlot[index].capitan}, 
+            titularesPorSlot[index].clase 
+            ]"
+            draggable="true"
+            @dragstart="empiezaArrastre(index)"
+            @dblclick="hacerCapitan(titularesPorSlot[index])"
+            @click="abrirDetalles(titularesPorSlot[index])">
             <div class="contenedor-avatar">
               <img v-if="titularesPorSlot[index].foto" :src="titularesPorSlot[index].foto" class="foto-miniatura">
               <div v-else class="inicial-miniatura">{{ titularesPorSlot[index].nombre.charAt(0) }}</div>
@@ -449,41 +451,32 @@ const cerrarDetalles = () => {
 
       <Transition name="fade">
   <div v-if="jugadorSeleccionado" class="capa-oscura" @click="cerrarDetalles">
-    <div class="tarjeta-cromo" @click.stop>
+    <div :class="['tarjeta-cromo-pro', jugadorSeleccionado.clase]" @click.stop>
       
-      <div class="cromo-header">
-        <span class="cromo-dorsal">#{{ jugadorSeleccionado.id }}</span>
-        <img v-if="jugadorSeleccionado.foto" :src="jugadorSeleccionado.foto" class="cromo-foto">
-        <div v-else class="cromo-foto-vacia">{{ jugadorSeleccionado.nombre.charAt(0) }}</div>
-      </div>
+      <div class="efecto-brillo"></div>
+      <div class="textura-fondo"></div>
 
-      <div class="cromo-body">
-        <h2>{{ jugadorSeleccionado.nombre }}</h2>
-        <p class="cromo-pos">{{ obtenerEmojiPosicion(jugadorSeleccionado.posicion) }} {{ jugadorSeleccionado.posicion }}</p>
-        
-        <div class="stats-grid">
-          <div class="stat-item">
-            <span>GOLES</span> {{ jugadorSeleccionado.goles || 0 }}
-          </div>
-          <div class="stat-item">
-            <span>ASIST.</span> {{ jugadorSeleccionado.asistencias || 0 }}
-          </div>
-          <div class="stat-item">
-            <span>ROJAS</span> {{ jugadorSeleccionado.rojas || 0 }}
-          </div>
-          <div class="stat-item">
-            <span>AMARILLAS</span> {{ jugadorSeleccionado.amarillas || 0 }}
-          </div>
-          <div class="stat-item">
-            <span>TÍTULOS</span> {{ jugadorSeleccionado.titulos || 0 }}
-          </div>
-          <div class="stat-item">
-            <span>ESTADO</span> {{ jugadorSeleccionado.titular ? 'Titular' : 'Suplente' }}
+      <div class="contenido-cromo">
+        <div class="cromo-header-pro">
+          <div class="dorsal-pro">{{ jugadorSeleccionado.id }}</div>
+          <img v-if="jugadorSeleccionado.foto" :src="jugadorSeleccionado.foto" class="foto-pro">
+          <div v-else class="foto-pro-vacia">{{ jugadorSeleccionado.nombre.charAt(0) }}</div>
+        </div>
+
+        <div class="cromo-info-pro">
+          <h2>{{ jugadorSeleccionado.nombre }}</h2>
+          <span class="posicion-pro">{{ obtenerEmojiPosicion(jugadorSeleccionado.posicion) }} {{ jugadorSeleccionado.posicion }}</span>
+          
+          <div class="stats-premium">
+            <div class="stat-box"><span>GOL</span><strong>{{ jugadorSeleccionado.goles || 0 }}</strong></div>
+            <div class="stat-box"><span>ASI</span><strong>{{ jugadorSeleccionado.asistencias || 0 }}</strong></div>
+            <div class="stat-box"><span>TIT</span><strong>{{ jugadorSeleccionado.titulos || 0 }}</strong></div>
+            <div class="stat-box"><span>ROJ</span><strong>{{ jugadorSeleccionado.rojas || 0 }}</strong></div>
           </div>
         </div>
+
+        <button class="btn-cerrar-pro" @click="cerrarDetalles">VOLVER AL CAMPO</button>
       </div>
-      
-      <button class="btn-cerrar-cromo" @click="cerrarDetalles">CERRAR</button>
     </div>
   </div>
 </Transition>
@@ -948,13 +941,231 @@ const cerrarDetalles = () => {
   border-radius: 20px; text-align: center;
   box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
 }
-.cromo-foto { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #d4af37; object-fit: cover; }
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-.stat-item { background: rgba(255,255,255,0.1); padding: 5px; border-radius: 5px; font-size: 14px; color: white; }
-.stat-item span { color: #d4af37; font-weight: bold; margin-right: 5px; }
-.btn-cerrar-cromo { margin-top: 20px; background: #d4af37; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 5px; }
+
+.cromo-foto { 
+width: 120px; 
+height: 120px; 
+border-radius: 50%; 
+border: 3px solid #d4af37; 
+object-fit: cover; }
+
+.stats-grid { 
+display: grid; 
+grid-template-columns: 1fr 1fr; 
+gap: 10px; 
+margin-top: 15px; }
+
+.stat-item { 
+background: rgba(255,255,255,0.1); 
+padding: 5px; 
+border-radius: 5px; 
+font-size: 14px; 
+color: white; }
+
+.stat-item span { 
+color: #d4af37; 
+font-weight: bold; 
+margin-right: 5px; }
+
+.btn-cerrar-cromo { 
+margin-top: 20px; 
+background: #d4af37; 
+border: none; 
+padding: 10px 20px; 
+font-weight: bold; 
+cursor: pointer; 
+border-radius: 5px; }
 
 /* Una animación, para que no esté tan aburridete */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.etiqueta-capitan {
+  background: #d4af37;
+  color: black;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 2px 10px;
+  border-radius: 10px;
+  display: inline-block;
+  margin-bottom: 10px;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+/* Oro */
+.ficha-campo.oro {
+  background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 50%, #aa771c 100%) !important;
+  border: 2px solid #fff5b7 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.5) !important;
+}
+.ficha-campo.oro .nombre-campo {
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: #f5d061 !important;
+  border-top: 1px solid #f5d061;
+}
+
+/* Fuego (Goleadores o muy destacados) */
+.ficha-campo.fuego {
+  background: linear-gradient(180deg, #ff4500 0%, #b71c1c 100%) !important;
+  border: 2px solid #ffab40 !important;
+  animation: brillo-fuego 2s infinite alternate;
+}
+.ficha-campo.fuego .nombre-campo {
+  background: #222 !important;
+  color: #ff4500 !important;
+  text-shadow: 0 0 5px #ff4500;
+}
+
+@keyframes brillo-fuego {
+  from { box-shadow: 0 0 5px #ff4500, inset 0 0 5px #fff; }
+  to { box-shadow: 0 0 20px #ff4500, inset 0 0 10px #ff4500; }
+}
+
+/* Leyenda (Jugadores con una gran trayectoria) */
+.ficha-campo.leyenda {
+  background: radial-gradient(circle, #434343 0%, #000 100%) !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 4px 15px rgba(255,255,255,0.2) !important;
+}
+.ficha-campo.leyenda .foto-miniatura {
+  filter: grayscale(1) contrast(1.2);
+}
+
+@keyframes pulso-fuego {
+  0% { box-shadow: 0 0 10px #ff4500; }
+  50% { box-shadow: 0 0 30px #ff8c00; }
+  100% { box-shadow: 0 0 10px #ff4500; }
+}
+
+/* Oro */
+.oro {
+  border: 2px solid #ffd700 !important;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+.ficha-campo.oro .nombre-campo {
+  background: #ffd700 !important;
+  color: #000 !important;
+}
+.tarjeta-cromo.oro {
+  background: linear-gradient(135deg, #bf953f, #fcf6ba, #aa771c) !important;
+}
+
+/* Fuego */
+.fuego {
+  border: 2px solid #ff4500 !important;
+  animation: pulso-fuego-mini 2s infinite;
+}
+.ficha-campo.fuego .nombre-campo {
+  background: #ff4500 !important;
+}
+.tarjeta-cromo.fuego {
+  background: linear-gradient(180deg, #800000, #ff4500) !important;
+}
+
+/* Leyenda */
+.leyenda {
+  border: 2px solid #c0c0c0 !important;
+}
+.ficha-campo.leyenda .foto-miniatura {
+  filter: sepia(0.5) contrast(1.2);
+}
+.tarjeta-cromo.leyenda {
+  background: linear-gradient(135deg, #1a1a1a, #434343) !important;
+}
+
+/* Animación para el efecto de fuego */
+@keyframes pulso-fuego-mini {
+  0% { box-shadow: 0 0 5px #ff4500; }
+  50% { box-shadow: 0 0 15px #ff8c00; }
+  100% { box-shadow: 0 0 5px #ff4500; }
+}
+
+.tarjeta-cromo-pro {
+  position: relative;
+  width: 300px;
+  border-radius: 15px;
+  padding: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  border: 4px solid #fff;
+  transition: transform 0.3s ease;
+}
+
+/* Metemos un efecto de estructura y brillo que nos ha prporcionado la IA */
+.textura-fondo {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+  opacity: 0.1;
+  z-index: 1;
+}
+
+.efecto-brillo {
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(45deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 70%);
+  animation: brillo-pasante 4s infinite linear;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes brillo-pasante {
+  0% { transform: translate(-30%, -30%); }
+  100% { transform: translate(30%, 30%); }
+}
+
+.tarjeta-cromo-pro.oro {
+  background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+  border-color: #f5d061;
+}
+.tarjeta-cromo-pro.oro h2 { color: #4b3a07; }
+
+.tarjeta-cromo-pro.fuego {
+  background: linear-gradient(180deg, #b71c1c, #ff5722);
+  border-color: #ffab40;
+  animation: latido-fuego 2s infinite alternate;
+}
+@keyframes latido-fuego {
+  from { box-shadow: 0 0 20px #ff5722; }
+  to { box-shadow: 0 0 40px #ff5722, inset 0 0 20px rgba(255,255,255,0.3); }
+}
+
+.tarjeta-cromo-pro.leyenda {
+  background: linear-gradient(135deg, #2c3e50, #000000);
+  border-color: #bdc3c7;
+}
+.tarjeta-cromo-pro.leyenda .foto-pro { filter: grayscale(100%) contrast(1.2); }
+
+.contenido-cromo { position: relative; z-index: 5; }
+
+.foto-pro {
+  width: 150px; height: 150px;
+  border-radius: 50%;
+  border: 5px solid rgba(255,255,255,0.8);
+  object-fit: cover;
+  background: #111;
+}
+.stats-premium {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin: 15px 0;
+}
+.stat-box {
+  background: rgba(0,0,0,0.6);
+  padding: 8px; border-radius: 8px;
+  color: white; display: flex; justify-content: space-between;
+}
+
+.stat-box span { 
+  color: #aaa; 
+  font-size: 0.7rem; }
+
+.btn-cerrar-pro {
+  width: 100%; 
+  padding: 10px; 
+  border: none;
+  border-radius: 5px; 
+  font-weight: bold;
+  background: white; 
+  cursor: pointer;
+}
 </style>
