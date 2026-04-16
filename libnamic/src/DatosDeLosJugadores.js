@@ -90,11 +90,42 @@ export const listaCompartida = ref(
     ]
 )
 
-//Cada vez que la lista cambie guardamos la versión actualizada automáticamente
+// Estos NO están en la lista inicial, solo se consiguen abriendo sobres.
+export const poolExclusivos = [
+  { id: 201, nombre: 'Zidane', posicion: 'Centrocampista', clase: 'leyenda', goles: 125, asistencias: 110, titulos: 15, foto: "Imagenes/zidane.jpg", titular: false, convocado: false },
+  { id: 202, nombre: 'Ronaldo', posicion: 'Delantero', clase: 'leyenda', goles: 352, asistencias: 70, titulos: 18, foto: "Imagenes/ronaldo.jpg", titular: false, convocado: false },
+  { id: 203, nombre: 'Ronaldinho', posicion: 'Delantero', clase: 'leyenda', goles: 196, asistencias: 160, titulos: 13, foto: "Imagenes/ronaldinho.jpg", titular: false, convocado: false },
+  { id: 204, nombre: 'Casillas', posicion: 'Portero', clase: 'leyenda', goles: 0, asistencias: 1, titulos: 24, foto: "Imagenes/casillas.jpg", titular: false, convocado: false },
+  { id: 205, nombre: 'Vinícius Jr', posicion: 'Delantero', clase: 'fuego', goles: 95, asistencias: 82, titulos: 12, foto: "Imagenes/vini.jpg", titular: false, convocado: false },
+  { id: 206, nombre: 'Haaland', posicion: 'Delantero', clase: 'fuego', goles: 250, asistencias: 45, titulos: 7, foto: "Imagenes/haaland.jpg", titular: false, convocado: false },
+  { id: 207, nombre: 'De Bruyne', posicion: 'Centrocampista', clase: 'fuego', goles: 102, asistencias: 202, titulos: 20, foto: "Imagenes/debruyne.jpg", titular: false, convocado: false },
+  { id: 208, nombre: 'Bellingham', posicion: 'Centrocampista', clase: 'fuego', goles: 55, asistencias: 40, titulos: 5, foto: "Imagenes/jude.jpg", titular: false, convocado: false },
+  { id: 209, nombre: 'Salah', posicion: 'Delantero', clase: 'fuego', goles: 210, asistencias: 95, titulos: 9, foto: "Imagenes/salah.jpg", titular: false, convocado: false },
+  { id: 210, nombre: 'Wirtz', posicion: 'Centrocampista', clase: 'fuego', goles: 45, asistencias: 55, titulos: 3, foto: "Imagenes/wirtz.jpg", titular: false, convocado: false },
+  { id: 211, nombre: 'Rodri', posicion: 'Centrocampista', clase: 'oro', goles: 25, asistencias: 30, titulos: 12, foto: "Imagenes/rodri.jpg", titular: false, convocado: false },
+  { id: 212, nombre: 'Saka', posicion: 'Delantero', clase: 'oro', goles: 60, asistencias: 55, titulos: 2, foto: "Imagenes/saka.jpg", titular: false, convocado: false },
+  { id: 213, nombre: 'Davies', posicion: 'Defensa', clase: 'oro', goles: 15, asistencias: 35, titulos: 14, foto: "Imagenes/davies.jpg", titular: false, convocado: false },
+  { id: 214, nombre: 'Ruben Dias', posicion: 'Defensa', clase: 'oro', goles: 12, asistencias: 5, titulos: 10, foto: "Imagenes/dias.jpg", titular: false, convocado: false },
+  { id: 215, nombre: 'Ter Stegen', posicion: 'Portero', clase: 'oro', goles: 0, asistencias: 2, titulos: 16, foto: "Imagenes/terstegen.jpg", titular: false, convocado: false },
+  { id: 216, nombre: 'Gavi', posicion: 'Centrocampista', clase: 'oro', goles: 10, asistencias: 15, titulos: 3, foto: "Imagenes/gavi.jpg", titular: false, convocado: false },
+  { id: 217, nombre: 'Theo Hdez', posicion: 'Defensa', clase: 'oro', goles: 30, asistencias: 40, titulos: 5, foto: "Imagenes/theo.jpg", titular: false, convocado: false },
+  { id: 218, nombre: 'Griezmann', posicion: 'Delantero', clase: 'oro', goles: 240, asistencias: 110, titulos: 8, foto: "Imagenes/griezmann.jpg", titular: false, convocado: false },
+  { id: 219, nombre: 'Valverde', posicion: 'Centrocampista', clase: 'oro', goles: 25, asistencias: 25, titulos: 11, foto: "Imagenes/valverde.jpg", titular: false, convocado: false },
+  { id: 220, nombre: 'Bernardo Silva', posicion: 'Centrocampista', clase: 'oro', goles: 65, asistencias: 75, titulos: 15, foto: "Imagenes/bernardo.jpg", titular: false, convocado: false }
+]
 watch(
   listaCompartida, 
   (nuevaLista) => {
     localStorage.setItem('misJugadores', JSON.stringify(nuevaLista))
   },
   { deep: true } //deep sirve para detectar cambios dentro de los objetos
+
+  
 )
+
+
+
+
+
+
+

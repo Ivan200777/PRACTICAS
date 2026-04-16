@@ -13,6 +13,7 @@
         <li><router-link to="/">Campo</router-link></li>
         <li><router-link to="/jugadores">Mis 11 elegidos</router-link></li>
         <li><router-link to="/banquillo">Banquillo</router-link></li>
+        <li><router-link to="/sobres">SOBRES</router-link></li>
         </ul>
 
     </nav>

@@ -33,13 +33,18 @@ const misRutas= [
     props: true //código más limpio y fácil gracias a props
 
 },
-  {
+{
     path: '/jugador/:id/edit',
     name: 'editar-jugador',
     component: () => import('../views/FichaTecnicaView.vue'), 
     props: true
-  }
-
+},
+// SOLO AÑADIMOS ESTA PARTE AL FINAL DE TU LISTA
+{
+    path: '/sobres',
+    name: 'sobres',
+    component: () => import('../views/SobresView.vue')
+}
 ]
 
 const router = createRouter({
