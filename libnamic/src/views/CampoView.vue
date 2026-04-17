@@ -452,6 +452,11 @@ const cerrarDetalles = () => {
       <Transition name="fade">
   <div v-if="jugadorSeleccionado" class="capa-oscura" @click="cerrarDetalles">
     <div :class="['tarjeta-cromo-pro', jugadorSeleccionado.clase]" @click.stop>
+
+    <div class="media-badge">{{ jugadorSeleccionado.media || '?' }}</div>
+  
+  <div class="contenido-cromo">
+    </div>
       
       <div class="efecto-brillo"></div>
       <div class="textura-fondo"></div>

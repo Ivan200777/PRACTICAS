@@ -14,6 +14,7 @@
         <li><router-link to="/jugadores">Mis 11 elegidos</router-link></li>
         <li><router-link to="/banquillo">Banquillo</router-link></li>
         <li><router-link to="/sobres">SOBRES</router-link></li>
+        <li><router-link to="/torneo" class="link-torneo-header">🏆 TORNEO</router-link></li>
         </ul>
 
     </nav>
@@ -57,5 +58,17 @@ Se pone aquí y no dentro del hover.*/
 
 .nav-menu a:hover{
     color:#d4af37;
+}
+
+.link-torneo-header {
+  color: #d4af37 !important; 
+  border: 1px solid #d4af37;
+  padding: 5px 15px;
+  border-radius: 5px;
+}
+
+.link-torneo-header:hover {
+  background: #d4af37;
+  color: black !important;
 }
 </style>

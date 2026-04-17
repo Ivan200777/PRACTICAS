@@ -42,6 +42,10 @@ const borrarJugador = (id) => {
         <button @click="borrarJugador(jugador.id)" class="Despedir">
             x
           </button>
+
+          <button @click="jugador.titular = true" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+            ⬆️ Subir al Campo
+          </button>
           
             <div class="contenedor-foto">
         <img v-if="jugador.foto" :src="jugador.foto" class="foto-real">

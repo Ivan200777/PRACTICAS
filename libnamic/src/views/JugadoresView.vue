@@ -132,7 +132,9 @@ const elegirCapitan = (id) => {
         <input v-model="nuevaFoto" type="text" placeholder="URL de la foto (opcional)" class="input-base">
       </div>
 
-      <button @click="añadirFichaje" class="boton-fichar">{{ editandoId ? 'GUARDAR CAMBIOS' : 'FICHAR' }}</button>
+      <button @click="añadirFichaje" class="boton-fichar">
+        {{ editandoId ? 'GUARDAR CAMBIOS' : 'FICHAR' }}
+      </button>
       
       <p class="preview-fichaje">
         {{ editandoId ? 'Editando a: ' : 'Vas a fichar a: ' }} <strong>{{ nuevoNombre }}</strong>
@@ -147,32 +149,33 @@ const elegirCapitan = (id) => {
 
     <ul class="lista-titulares">
       <li v-for="j in titularesFiltrados" 
-    :key="j.id" 
-    class="item-jugador" 
-    :class="{ 'es-capitan': j.capitan }">
-  
-    <div v-if="j.capitan" class="brazalete-capitan">C</div>
+          :key="j.id" 
+          class="item-jugador" 
+          :class="{ 'es-capitan': j.capitan }">
+        
+        <div v-if="j.capitan" class="brazalete-capitan">C</div>
 
-    <button @click="borrarJugador(j.id)" class="Despedir">x</button>
-    <button @click="prepararEdicion(j)" class="boton-editar">✏️</button>
-  
-    <button @click="elegirCapitan(j.id)" class="boton-capitan">
-    {{ j.capitan ? '⭐ Capitán' : 'Nombrar Capitán' }}
-    </button>
+        <button @click="borrarJugador(j.id)" class="Despedir" title="Despedir">x</button>
+        <button @click="prepararEdicion(j)" class="boton-editar" title="Editar">✏️</button>
+      
+        <div class="contenedor-foto">
+          <img v-if="j.foto" :src="j.foto" class="foto-real">
+          <div v-else class="circulo-vacio">
+            {{ j.nombre.charAt(0) }}
+          </div>
+        </div>
 
-   <div class="contenedor-foto">
-    <img v-if="j.foto" :src="j.foto" class="foto-real">
-    <div v-else class="circulo-vacio">
-      {{ j.nombre.charAt(0) }}
-    </div>
-  </div>
+        <tarjeta-de-jugador :jugador="j"/>
 
-  <tarjeta-de-jugador :jugador="j"/>
-  
-  <button @click="cambiarEstado(j.id)" class="boton-banquillo">
-    {{ j.titular ? '⬇️ Mandar al Banquillo' : '⬆️ Titular' }} 
-  </button>
+        <div class="acciones-inferiores">
+          <button @click="elegirCapitan(j.id)" class="boton-capitan">
+            {{ j.capitan ? '⭐ Capitán' : 'Nombrar Capitán' }}
+          </button>
 
+          <button @click="cambiarEstado(j.id)" class="boton-banquillo">
+            ⬇️ Mandar al Banquillo
+          </button>
+        </div>
       </li>
     </ul>
   </div>
